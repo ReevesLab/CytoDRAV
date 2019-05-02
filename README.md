@@ -5,7 +5,7 @@ Dimensionality Reduction and Visualization for Flow Cytometry
 Note: This package was built on Mac OS X Movaje (10.14.4). I have tested it on Linux Mint 18 as well with success. Windows has not been tested.
 1. Install R from https://cloud.r-project.org/
   - CytoDRAV was built with R 3.4.4 but has been shown to work with R 3.6.0 on Linux Mint 18.
-2. Download CytoDRAV from this page to your Desktop. Extract the .zip file by double clicking.
+2. Download CytoDRAV from [this link](https://github.com/ReevesLab/CytoDRAV/archive/master.zip) to your Desktop. Extract the .zip file by double clicking.
 3. Open a terminal (&#x2318; + spacebar -> "terminal") and typing `cd ~/Desktop/CytoDRAV-master` and hitting return.
 4. Check to see if XCode Command Line tools are installed by running the following command 
     ```
