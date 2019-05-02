@@ -12,7 +12,7 @@ plan(multiprocess)
 
 
 #Default max file size is only 5MB. This ups that limit to 30MB
-options(shiny.maxRequestSize=50*1024^2)
+options(shiny.maxRequestSize=100*1024^2)
 
 # Needed for display of bh-SNE progress
 tmpfile <- tempfile()
