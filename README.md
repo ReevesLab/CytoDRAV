@@ -1,7 +1,7 @@
 # CytoDRAV
 Dimensionality Reduction and Visualization for Flow Cytometry
 
-##Installation
+## Installation
 Note: This package was built on Mac OS X Movaje (10.14.4). I have tested it on Linux Mint 18 as well with success. Windows has not been tested.
 1. Install R from https://cloud.r-project.org/
   - CytoDRAV was built with R 3.4.4 but has been shown to work with R 3.6.0 on Linux Mint 18.
