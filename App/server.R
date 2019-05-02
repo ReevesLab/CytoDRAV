@@ -88,7 +88,7 @@ function(input, output, session) {
     sink(tmpfile, type=c("output", "message"), append=FALSE)
 
     future({
-
+      sink(tmpfile, type=c("output", "message"), append=FALSE)
       Rtsne(tmp, verbose=TRUE, perplexity=perp,
             theta=theta, eta=eta,
             dims=dims, pca=pca, check_duplicates = FALSE)
