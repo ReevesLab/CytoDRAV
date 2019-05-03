@@ -1,6 +1,5 @@
 
-## DATA NORMALIZATION FOR PLOTTING
-
+`%>%` <- magrittr::`%>%`
 # Sets outliers equal to the 1st and 99th percentile
 normData <- function(x){
   quantiles <- quantile( x, c(.01, .99 ) )
