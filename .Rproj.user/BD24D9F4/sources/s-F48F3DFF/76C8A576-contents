@@ -18,7 +18,6 @@ Imports:
     flowCore,
     promises,
     future,
-    dplyr,
     stringr,
     colourpicker,
     Rtsne,
