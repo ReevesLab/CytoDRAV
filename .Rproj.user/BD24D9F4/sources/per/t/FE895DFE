@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1556838726537.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1512403192",
+    "id" : "FE895DFE",
+    "lastKnownWriteTime" : 1556838933,
+    "last_content_update" : 1556838933464,
+    "path" : "~/Desktop/Projects/CytoDRAV/inst/application/server.R",
+    "project_path" : "inst/application/server.R",
+    "properties" : {
+        "cursorPosition" : "3,14",
+        "scrollLine" : "0"
+    },
+    "relative_order" : 4,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

@@ -9,13 +9,6 @@ normData <- function(x){
   x
 }
 
-# Returns z-scores for values in vector
-scale_rows = function(x){
-  m = apply(x, 1, mean, na.rm = T)
-  s = apply(x, 1, sd, na.rm = T)
-  return((x - m) / s)
-}
-
 ## PLOTTING FUNCTIONS
 plotTSNE <- function(dataToPlot, marker, dotsize, dotalpha, sampleColor, showDensity) {
   data <- as.data.frame(dataToPlot)
@@ -43,21 +36,23 @@ plotTSNE <- function(dataToPlot, marker, dotsize, dotalpha, sampleColor, showDen
 
 
 ## FCS Loading
+#' @import flowCore
 loadFCS <- function(fcsFiles, doTransform) {
   exprsData <- data.frame()
 
   for (i in 1:length(fcsFiles[,1])) {
-    singleFCS <- read.FCS(fcsFiles[i, "datapath"])
+    singleFCS <- flowCore::read.FCS(fcsFiles[i, "datapath"])
 
     if (isTRUE(doTransform)) {
-      lgcl <- logicleTransform( w = 0.5, t= 262144, m = 4)
-      singleFCS <- transform(singleFCS, transformList(paste(singleFCS@parameters@data$name), lgcl))
+      lgcl <- flowCore::logicleTransform( w = 0.5, t= 262144, m = 4)
+      singleFCS <- flowCore::transform(singleFCS,
+                                       transformList(paste(singleFCS@parameters@data$name), lgcl))
 
     }
     dff <- data.frame(singleFCS@exprs)
     colnames(dff) <- as.vector(paste(singleFCS@parameters@data$name, singleFCS@parameters@data$desc, sep="::"))
     name <- strsplit(fcsFiles[i, "name"], "[.]")[[1]][1]
-    name <- str_replace_all(name, " ", "_")
+    name <- stringr::str_replace_all(name, " ", "_")
     dff$Sample <- rep(name, nrow(dff))
     if ("Infection" %in% names(singleFCS@description)) {
       inf <- singleFCS@description$Infection

@@ -1,10 +1,7 @@
 library(shiny)
-library(flowCore)
 library(promises)
 library(future)
 library(dplyr)
-library(stringr)
-library(colourpicker)
 library(Rtsne)
 library(ggplot2)
 source("./serverFunctions.R")
@@ -20,7 +17,7 @@ tmpdir <- tempdir()
 
 # Main server function
 function(input, output, session) {
-  
+
   userDF <- reactiveValues(orig_data=NULL, markers=NULL, plotstyle=NULL, sel_data=NULL)
 
   load_data <- reactive({
@@ -104,7 +101,8 @@ function(input, output, session) {
   # Color picker to manually select colors for your samples
   cols <- reactive({
     lapply(unique(userDF$orig_data$Sample), function(i) {
-      div(style="display: inline-block;vertical-align:top; width: 200px;", colourInput(i, i, "black", palette = "limited"))
+      div(style="display: inline-block;vertical-align:top; width: 200px;",
+          colourpicker::colourInput(i, i, "black", palette = "limited"))
     })
   })
 
@@ -157,16 +155,6 @@ function(input, output, session) {
   output$overlay <- renderUI({
     if (is.null(userDF$markers)) return ()
     selectInput(inputId="moverlay", "Color", choices=userDF$markers, selected="Sample")
-  })
-  output$plotlyMarkers1 <- renderUI({
-    if (is.null(userDF$markers)) return ()
-    div(style="display: inline-block;vertical-align:top; width: 150px;",
-        selectInput(inputId="intMarkerX", "X-Axis", choices=userDF$markers, selected=userDF$markers[[1]]))
-  })
-  output$plotlyMarkers2 <- renderUI({
-    if (is.null(userDF$markers)) return ()
-    div(style="display: inline-block;vertical-align:top; width: 150px;",
-        selectInput(inputId="intMarkerY", "Y-Axis", choices=userDF$markers, selected=userDF$markers[[2]]))
   })
 
 
