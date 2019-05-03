@@ -10,7 +10,7 @@ options(shiny.maxRequestSize=100*1024^2)
 tmpfile <- tempfile()
 tmpdir <- tempdir()
 `%...>%` <- promises::`%...>%`
-`%>%` <- dplyr::`%>%`
+`%>%` <- magrittr::`%>%`
 # Main server function
 function(input, output, session) {
 
