@@ -2,7 +2,7 @@
 Dimensionality Reduction and Visualization for Flow Cytometry
 
 ## Installation
-
+If you are on a unix system please skip to step 2.
 1. Check to see if XCode Command Line tools are installed by running the following command 
     ```
     xcode-select --install
