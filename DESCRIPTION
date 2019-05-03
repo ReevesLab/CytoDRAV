@@ -17,6 +17,7 @@ Imports:
     shiny,
     flowCore,
     promises,
+    dplyr,
     future,
     stringr,
     colourpicker,
