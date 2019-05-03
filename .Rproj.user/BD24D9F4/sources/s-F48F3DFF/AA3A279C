@@ -7,13 +7,13 @@
     "folds" : "",
     "hash" : "0",
     "id" : "AA3A279C",
-    "lastKnownWriteTime" : 1556897043,
-    "last_content_update" : 1556897043055,
+    "lastKnownWriteTime" : 1556911799,
+    "last_content_update" : 1556911799880,
     "path" : "~/Desktop/Projects/CytoDRAV/inst/application/serverFunctions.R",
     "project_path" : "inst/application/serverFunctions.R",
     "properties" : {
-        "cursorPosition" : "70,36",
-        "scrollLine" : "48"
+        "cursorPosition" : "15,0",
+        "scrollLine" : "2"
     },
     "relative_order" : 3,
     "source_on_save" : false,

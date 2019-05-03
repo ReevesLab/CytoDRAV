@@ -23,7 +23,9 @@ plotTSNE <- function(dataToPlot, marker, dotsize, dotalpha, sampleColor, showDen
 
     plot <- plot +
       ggplot2::geom_point(ggplot2::aes(color=normData(data[, marker])), size=dotsize, alpha=dotalpha) +
-      ggplot2::scale_color_gradientn(colors=c("blue", "cyan", "yellow", "red" ), labels = c()) +
+      ggplot2::scale_color_gradientn(colors=c("blue", "cyan", "yellow", "red" ),
+                                     breaks=c(min(normData(data[, marker])), median(normData(data[, marker])), max(normData(data[, marker]))),
+                                     labels = c("Low", "", "High")) +
       ggplot2::labs(x="bh-SNE1", y="bh-SNE2", color=strsplit(marker, "::")[[1]][2]) +
       ggplot2::guides(colour = ggplot2::guide_colourbar(title = ggplot2::waiver(), barheight=25))
 
@@ -32,8 +34,11 @@ plotTSNE <- function(dataToPlot, marker, dotsize, dotalpha, sampleColor, showDen
   if (isTRUE(showDensity)) plot <- plot + ggplot2::geom_density_2d()
   return(plot + ggplot2::theme(panel.grid.major = ggplot2::element_blank(),
                       panel.grid.minor = ggplot2::element_blank(),
+                      legend.text = ggplot2::element_text(size=18, face="bold"),
+                      legend.title = ggplot2::element_text(size=18, face="bold"),
                       panel.background = ggplot2::element_blank(),
-                      axis.line = ggplot2::element_line(colour = "black")))
+                      axis.line = ggplot2::element_line(colour = "black"),
+                      axis.title = ggplot2::element_text(size=18, face="bold") ))
 }
 
 

@@ -34,6 +34,7 @@ function(input, output, session) {
   })
 
   observeEvent(input$loadfcs, {
+    userDF$plotstyle <- NULL
     userDF$markers <- NULL
     userDF$orig_data <- load_data()
   })
