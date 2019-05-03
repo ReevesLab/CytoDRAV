@@ -18,6 +18,8 @@ Dimensionality Reduction and Visualization for Flow Cytometry
    if(!require(devtools)) install.packages("devtools") # If not already installed
    devtools::install_github("ReevesLab/CytoDRAV", ref="PkgDev", force=T, dependencies=T)
    ```
+   This command will progress through the required packages. It may prompt you for input, please select accordingly and make sure that if it asks for you to install Bioconductor, select `yes`
+   
    This will install CytoDRAV and all required packages.
 3. Exit the R session by typing `q()` and then entering `n` and return. 
 4. In the terminal enter the following lines, hitting return after each line:
