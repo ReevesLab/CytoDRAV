@@ -46,7 +46,7 @@ loadFCS <- function(fcsFiles, doTransform) {
     if (isTRUE(doTransform)) {
       lgcl <- flowCore::logicleTransform( w = 0.5, t= 262144, m = 4)
       singleFCS <- flowCore::transform(singleFCS,
-                                       transformList(paste(singleFCS@parameters@data$name), lgcl))
+                                       flowCore::transformList(paste(singleFCS@parameters@data$name), lgcl))
 
     }
     dff <- data.frame(singleFCS@exprs)
