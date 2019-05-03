@@ -1,5 +1,5 @@
 
-`%>%` <- magrittr::`%>%`
+`%>%` <- dplyr::`%>%`
 # Sets outliers equal to the 1st and 99th percentile
 normData <- function(x){
   quantiles <- quantile( x, c(.01, .99 ) )
@@ -68,7 +68,7 @@ loadFCS <- function(fcsFiles, doTransform) {
 
   exprsData$Duped <- duplicated(exprsData[,!colnames(exprsData)%in%c("Sample", "Infection")])
 
-  exprsData <- exprsData %>% filter(Duped==FALSE)
+  exprsData <- exprsData %>% dplyr::filter(Duped==FALSE)
   exprsData <- exprsData[sample(1:nrow(exprsData)),]
   exprsData <- exprsData[,!colnames(exprsData)%in%c("Duped")]
   return(exprsData)
