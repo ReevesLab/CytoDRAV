@@ -14,7 +14,7 @@ I have not tested this with Windows but as long as you can make and gcc you can 
     use "Software Update" to install updates
     ```
     or a window will pop-up prompting you to install the command line tools. Complete this installation before proceeding.
-2. After installing R from [CRAN](https://cloud.r-project.org/), in the terminal you already have open, run the command `R`. This will start an interactive R session. Run the following commands to install devtools and CytoDRAV
+2. Install R by downloading the R-3.4.4 package [here](https://cloud.r-project.org/bin/macosx/el-capitan/base/R-3.4.3.pkg). Then in the terminal you already have open, run the command `R`. This will start an interactive R session. Run the following commands to install devtools and CytoDRAV
    ```
    if(!require(devtools)) install.packages("devtools") # If not already installed
    devtools::install_github("ReevesLab/CytoDRAV", ref="PkgDev", force=T, dependencies=T)
