@@ -24,7 +24,7 @@ function(input, output, session) {
     userDF$orig_data <- NULL
     userDF$sel_data <- NULL
     fcsFileList <- input$file1
-    fcsFileList <- rbind(fcsFileList[!str_detect(fcsFileList[,"name"], "Live"),], fcsFileList[str_detect(fcsFileList[,"name"], "Live"),])
+    fcsFileList <- rbind(fcsFileList[!stringr::str_detect(fcsFileList[,"name"], "Live"),], fcsFileList[stringr::str_detect(fcsFileList[,"name"], "Live"),])
     rownames(fcsFileList) <- NULL
     exprsData <- loadFCS(fcsFileList, input$transform)
     userDF$markers <- colnames(exprsData)

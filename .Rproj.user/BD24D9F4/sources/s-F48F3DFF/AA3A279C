@@ -5,7 +5,7 @@
     "dirty" : false,
     "encoding" : "UTF-8",
     "folds" : "",
-    "hash" : "386810342",
+    "hash" : "0",
     "id" : "AA3A279C",
     "lastKnownWriteTime" : 1556838944,
     "last_content_update" : 1556838944037,
@@ -13,7 +13,7 @@
     "project_path" : "inst/application/serverFunctions.R",
     "properties" : {
         "cursorPosition" : "37,14",
-        "scrollLine" : "16"
+        "scrollLine" : "0"
     },
     "relative_order" : 3,
     "source_on_save" : false,
