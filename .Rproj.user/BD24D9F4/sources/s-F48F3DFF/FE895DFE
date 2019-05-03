@@ -5,14 +5,14 @@
     "dirty" : false,
     "encoding" : "UTF-8",
     "folds" : "",
-    "hash" : "1872900397",
+    "hash" : "0",
     "id" : "FE895DFE",
-    "lastKnownWriteTime" : 1556895578,
-    "last_content_update" : 1556895578844,
+    "lastKnownWriteTime" : 1556896833,
+    "last_content_update" : 1556896833831,
     "path" : "~/Desktop/Projects/CytoDRAV/inst/application/server.R",
     "project_path" : "inst/application/server.R",
     "properties" : {
-        "cursorPosition" : "0,14",
+        "cursorPosition" : "12,2",
         "scrollLine" : "0"
     },
     "relative_order" : 4,
