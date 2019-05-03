@@ -1,4 +1,3 @@
-library(shiny)
 source("./serverFunctions.R")
 future::plan(future::multiprocess)
 
@@ -13,7 +12,7 @@ tmpdir <- tempdir()
 # Main server function
 function(input, output, session) {
 
-  userDF <- reactiveValues(orig_data=NULL, markers=NULL, plotstyle=NULL, sel_data=NULL)
+  userDF <- shiny::reactiveValues(orig_data=NULL, markers=NULL, plotstyle=NULL, sel_data=NULL)
 
   load_data <- reactive({
     userDF$orig_data <- NULL
