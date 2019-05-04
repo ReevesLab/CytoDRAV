@@ -21,7 +21,7 @@ plotTSNE <- function(dataToPlot, marker, dotsize, dotalpha, sampleColor) {
   } else if(marker == "Density") {
     dens <- get_density(data$tSNEX, data$tSNEY, n = 100)
     plot <- ggplot2::ggplot(data, ggplot2::aes(tSNEX, tSNEY)) +
-      ggplot2::geom_point(ggplot2::aes(color = dens), alpha=dotalpha) +
+      ggplot2::geom_point(ggplot2::aes(color = dens), alpha=dotalpha, size=dotsize) +
       ggplot2::scale_color_gradientn(colors=c("blue", "green", "yellow", "red" ),
                                      breaks=c(min(dens), median(dens), max(dens)),
                                      labels = c("Low", "", "High")) +
@@ -38,7 +38,7 @@ plotTSNE <- function(dataToPlot, marker, dotsize, dotalpha, sampleColor) {
                                               max(normData(data[, marker]))),
                                      labels = c("Low", "", "High")) +
       ggplot2::labs(x="bh-SNE1", y="bh-SNE2", color="") +
-      ggplot2::ggtitle(strsplit(marker, "::")[[1]][2]) +
+      ggplot2::ggtitle(marker) +
       ggplot2::guides(colour = ggplot2::guide_colourbar(title = ggplot2::waiver(), barwidth = 25))
 
 
