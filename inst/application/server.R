@@ -123,6 +123,8 @@ function(input, output, session) {
       userDF$sel_data$tSNEY <- as.vector(userDF$tSNEY)
       try(userDF$sel_data$Cluster <- as.vector(userDF$Cluster), silent = T)
     }
+    updateTabsetPanel(session, "apptabs",
+                      selected = "maintab")
     userDF$plotstyle <- "tSNE"
     comment(userDF$sel_data$tSNEX) <- paste0("tSNE Settings", "\nPerplexity: ", input$perp,
                                              "\nOutput Dims: ", input$ndims, "\nTheta: ", input$theta,

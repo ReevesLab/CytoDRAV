@@ -32,7 +32,7 @@ fluidPage(
     # All the div calls are so the buttons would be on the same row. I should look into fluidRow to cut down the clutter here.
     mainPanel(
       tabsetPanel(id="apptabs",
-        tabPanel("Main",
+        tabPanel(title="Main", value = "maintab",
 
       div(style="display: inline-block;vertical-align:top; width: 150px;",
           sliderInput(inputId="size", "Dot Size", min=0.1, max=5, value=1)),
