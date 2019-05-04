@@ -7,9 +7,10 @@ normData <- function(x){
 }
 
 ## PLOTTING FUNCTIONS
-plotTSNE <- function(dataToPlot, marker, dotsize, dotalpha, sampleColor) {
+create_plot <- function(dataToPlot, marker, dotsize, dotalpha, sampleColor) {
   data <- as.data.frame(dataToPlot)
   plot <- ggplot2::ggplot(data) + ggplot2::aes(x=data[,"tSNEX"], y=data[,"tSNEY"])
+
   if (marker == "Sample") {
 
     plot <- plot + ggplot2::scale_colour_manual(values=sampleColor) +
@@ -19,6 +20,7 @@ plotTSNE <- function(dataToPlot, marker, dotsize, dotalpha, sampleColor) {
       ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size=3)))
 
   } else if(marker == "Density") {
+
     dens <- get_density(data$tSNEX, data$tSNEY, n = 100)
     plot <- ggplot2::ggplot(data, ggplot2::aes(tSNEX, tSNEY)) +
       ggplot2::geom_point(ggplot2::aes(color = dens), alpha=dotalpha, size=dotsize) +
@@ -28,6 +30,7 @@ plotTSNE <- function(dataToPlot, marker, dotsize, dotalpha, sampleColor) {
       ggplot2::labs(x="bh-SNE1", y="bh-SNE2", color="") +
       ggplot2::ggtitle("Density") +
       ggplot2::guides(colour = ggplot2::guide_colourbar(title = ggplot2::waiver(), barwidth = 25))
+
   } else {
 
     plot <- plot +
