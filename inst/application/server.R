@@ -34,6 +34,8 @@ function(input, output, session) {
     userDF$plotstyle <- NULL
     userDF$markers <- NULL
     userDF$orig_data <- load_data()
+    updateTabsetPanel(session, "apptabs",
+                      selected = "paramtab")
   })
 
   observeEvent(input$runprev, {
@@ -119,6 +121,7 @@ function(input, output, session) {
     if (is.null(userDF$sel_data$tSNEX) || is.null(userDF$sel_data$tSNEY)) {
       userDF$sel_data$tSNEX <- as.vector(userDF$tSNEX)
       userDF$sel_data$tSNEY <- as.vector(userDF$tSNEY)
+      try(userDF$sel_data$Cluster <- as.vector(userDF$Cluster), silent = T)
     }
     userDF$plotstyle <- "tSNE"
     comment(userDF$sel_data$tSNEX) <- paste0("tSNE Settings", "\nPerplexity: ", input$perp,

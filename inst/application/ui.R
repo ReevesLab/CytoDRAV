@@ -31,7 +31,7 @@ fluidPage(
 
     # All the div calls are so the buttons would be on the same row. I should look into fluidRow to cut down the clutter here.
     mainPanel(
-      tabsetPanel(
+      tabsetPanel(id="apptabs",
         tabPanel("Main",
 
       div(style="display: inline-block;vertical-align:top; width: 150px;",
@@ -46,7 +46,7 @@ fluidPage(
       uiOutput("colsel"),
       plotOutput("plot", width="100%", height=750)
       ),
-      tabPanel("Parameters",
+      tabPanel(title="Parameters", value = "paramtab",
                fluidRow(
                column(2,
                       uiOutput("markerSelect"),
@@ -67,7 +67,8 @@ fluidPage(
                       p("Output dimensions - How many dimensions should the output have. Currently only display of 2 dimensions is supported."),
                       p("Theta - Speed/accuracy trade-off (increase for less accuracy), set to 0.0 for exact tSNE "),
                       p("Learning rate - How much variation is calculated during each iteration"),
-                      p("Iterations - How many iterations to run before ending the calculations. Max 5000"))
+                      p("Iterations - How many iterations to run before ending the calculations. Max 5000")
+                      )
                )),
 
       tabPanel("Export",
