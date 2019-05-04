@@ -3,7 +3,7 @@ Dimensionality Reduction and Visualization for Flow Cytometry
 
 ## Installation
 If you are on a linux system please skip to step 2.
-I have not tested this with Windows but as long as you can make and gcc you can install CytoDRAV. 
+Tested on R-3.4.4 on Mac OS, R-3.6.0 on Linux Mint 18 and Windows 10. On Windows 10 it appears all features work EXCEPT the bulk export of plots. I will be working on that.
 1. Launch a terminal session (&#x2318; + spacebar -> "terminal") and check to see if XCode Command Line tools are installed by running the following command 
     ```
     xcode-select --install
