@@ -58,10 +58,11 @@ function(input, output, session) {
   output$markerSelect <- renderUI({
     if (is.null(input_fcs_data$orig_data) && is.null(input_fcs_data$sel_data)) return ()
     checkboxGroupInput("choices", "Markers for Analysis",
-                       colnames(input_fcs_data$orig_data)[!colnames(input_fcs_data$orig_data)%in%c("Sample")],
-                       selected=colnames(input_fcs_data$orig_data)[!colnames(input_fcs_data$orig_data)%in%c("Sample")])
+                       choices = colnames(input_fcs_data$orig_data)[!colnames(input_fcs_data$orig_data)%in%c("Sample")],
+                       selected = colnames(input_fcs_data$orig_data)[!colnames(input_fcs_data$orig_data)%in%c("Sample")])
+    })
 
-  })
+
 
   # Slider to select number of events to use in analysis
   output$numCellSelect <- renderUI({
@@ -87,7 +88,7 @@ function(input, output, session) {
     input_fcs_data$tSNEX <- NULL
     input_fcs_data$tSNEY <- NULL
 
-    if (is.null(input_fcs_data$sel_data) || nrow(input_fcs_data$sel_data) != input$downsample_to_ncells) {
+    if ( (is.null(input_fcs_data$sel_data) ) || ( nrow(input_fcs_data$sel_data) != input$downsample_to_ncells) ) {
       input_fcs_data$ncells <- isolate(input$downsample_to_ncells)
       input_fcs_data$sel_data <- input_fcs_data$orig_data[sample(nrow(input_fcs_data$orig_data), input_fcs_data$ncells),]
       input_fcs_data$sel_data <- input_fcs_data$sel_data[!duplicated(input_fcs_data$sel_data[c(1:ncol(input_fcs_data$sel_data)-1)]),]
@@ -117,12 +118,12 @@ function(input, output, session) {
                    check_duplicates = FALSE)
     }) %...>%
       (function(tsne) {
-        # Store the tSNE results into new fields of ReactiveValues object for use later when user
-        # hits the plot button
+        # Add tSNE results to dataframe
         input_fcs_data$sel_data$tSNEX <- tsne$Y[,1]
         input_fcs_data$sel_data$tSNEY <- tsne$Y[,2]
 
-        # Adds comments to dataframe with the parameters used for analysis. Will eventually have a tab for this info
+        # Adds comments to dataframe with the parameters used for analysis.
+        # This information is printed to the About tab
         comment(input_fcs_data$sel_data$tSNEX) <- paste0("tSNE Settings", "<ul>",
                                                          "<li>Perplexity: ", perp,
                                                          "<li>Output Dims: ", dims,
@@ -139,6 +140,8 @@ function(input, output, session) {
 
   })
 
+  # Printing analysis information that is saved to the data. Useful for keeping track of analysis parameters
+  # after saving
   output$analysis_params <- renderUI({
     if (is.null(comment(input_fcs_data$sel_data$Sample))) return ()
     HTML(
@@ -150,6 +153,7 @@ function(input, output, session) {
       )
     )
   })
+
   # Color picker to manually select colors for your samples
   sample_colors <- reactive({
     lapply(unique(input_fcs_data$orig_data$Sample), function(i) {
@@ -177,24 +181,29 @@ function(input, output, session) {
 
   })
 
+  # Checks the tmpfile every 50 ms for changes
   log <- reactiveFileReader(50, session=session, tmpfile, read.delim, sep="\n")
+
+  # Prints tSNE status to text box under the file selection section
   output$consoletext <- renderPrint({
-    validate(
-      need(try(
-        suppressWarnings(print(log())), silent=TRUE),
-        "")
-    )
+    try(print(log()), silent=TRUE)
+
+    # Scrolls the window to last line as it prints
     session$sendCustomMessage(type = "scrollCallback", 1)
   })
 
+  # Save plot button
+  # Saves the currently displayed plot to PDF file
   output$export = downloadHandler(
-    filename = function() {paste0(input$marker_rel_overlay, ".pdf", input$format)},
+    filename = function() {paste0(input$marker_overlay, ".pdf", input$format)},
     content = function(file) {
       ggplot2::ggsave(file, plot=input_fcs_data$plot, device = "pdf", dpi=300, width=11, height=8.5, units="in")
 
     }
   )
 
+  # Save data button.
+  # Saves the user dataframe to local file. Can be uploaded later to visualize or rerun tSNE analysis
   output$saveRDF = downloadHandler(
     filename = function() {paste("DataFrame", ".Rda", sep="")},
     content = function(file) {
@@ -202,23 +211,25 @@ function(input, output, session) {
     }
   )
 
+  # Dropdown box for each parameter that can be used to color points on plot
   output$overlay <- renderUI({
     if (is.null(input_fcs_data$markers)) return ()
-    selectInput(inputId="marker_rel_overlay", "Color",
+    selectInput(inputId="marker_overlay", "Color",
                 choices=c(input_fcs_data$markers[!input_fcs_data$markers%in%c("tSNEX", "tSNEY")], "Density"),
                 selected="Sample")
   })
 
-
+  # Creates the plots the tSNE results
   output$plot <- renderPlot({
     if (is.null(input_fcs_data$plot_style)) return ()
     if(input_fcs_data$plot_style == "tSNE") {
       sampleColor <- setNames(unlist(select_sample_colors()), unique(input_fcs_data$orig_data$Sample))
-      input_fcs_data$plot <- create_plot(input_fcs_data$sel_data, input$marker_rel_overlay, input$size, input$alpha, sampleColor)
+      input_fcs_data$plot <- create_plot(input_fcs_data$sel_data, input$marker_overlay, input$size, input$alpha, sampleColor)
       input_fcs_data$plot
     }
   })
 
+  # Generates plots for each marker selected under the Export tab in the chosen file format
   observeEvent(input$generate_plots, {
     file.remove(list.files(tmpdir, full.names = T))
 
@@ -241,6 +252,7 @@ function(input, output, session) {
       })
     })
 
+  # Zips all the generated plots together for download
   output$download_plots = downloadHandler(
     filename = function() {paste(input$plotexport, "Plots.zip", sep=" ")},
     content = function(file) {
@@ -249,6 +261,8 @@ function(input, output, session) {
                                  recursive = TRUE, full.names = TRUE), flags="-j")
     }
   )
+
+  # Stops R session when window closes
   session$onSessionEnded(function() {
     stopApp()
   })
