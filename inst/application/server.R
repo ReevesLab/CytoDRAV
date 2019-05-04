@@ -57,7 +57,9 @@ function(input, output, session) {
   })
 
   output$exportmarkers <- renderUI({
-    checkboxGroupInput("echoices", "Markers", userDF$markers, selected=userDF$markers)
+    checkboxGroupInput("echoices", "Markers",
+                       choices=c(userDF$markers[!userDF$markers%in%c("tSNEX", "tSNEY")], "Density"),
+                       selected=c(userDF$markers[!userDF$markers%in%c("tSNEX", "tSNEY")], "Density"))
   })
 
 
@@ -78,13 +80,19 @@ function(input, output, session) {
     theta=input$theta
     dims=input$ndims
     pca=input$initpca
+    iter=input$iter
     sink(tmpfile, type=c("output", "message"), append=FALSE)
 
     future::future({
       sink(tmpfile, type=c("output", "message"), append=FALSE)
-      Rtsne::Rtsne(tmp, verbose=TRUE, perplexity=perp,
-            theta=theta, eta=eta,
-            dims=dims, pca=pca, check_duplicates = FALSE)
+      Rtsne::Rtsne(tmp, verbose=TRUE,
+                   perplexity=perp,
+                   theta=theta,
+                   eta=eta,
+                   dims=dims,
+                   pca=pca,
+                   max_iter=iter,
+                   check_duplicates = FALSE)
     }) %...>%
       (function(tsne) {
         userDF$tSNEX <- tsne$Y[,1]
@@ -150,7 +158,7 @@ function(input, output, session) {
 
   output$overlay <- renderUI({
     if (is.null(userDF$markers)) return ()
-    selectInput(inputId="moverlay", "Color", choices=userDF$markers, selected="Sample")
+    selectInput(inputId="moverlay", "Color", choices=c(userDF$markers[!userDF$markers%in%c("tSNEX", "tSNEY")], "Density"), selected="Sample")
   })
 
 
@@ -158,7 +166,7 @@ function(input, output, session) {
     if (is.null(userDF$plotstyle)) return ()
     if(userDF$plotstyle == "tSNE") {
       sampleColor <- setNames(unlist(selcolors()), unique(userDF$orig_data$Sample))
-      userDF$plot <- plotTSNE(userDF$sel_data, input$moverlay, input$size, input$alpha, sampleColor, input$showDensity)
+      userDF$plot <- plotTSNE(userDF$sel_data, input$moverlay, input$size, input$alpha, sampleColor)
       userDF$plot
     }
   })
@@ -172,7 +180,7 @@ function(input, output, session) {
       withProgress(message="Generating tSNE plots...", value=0, min=0, max=length(input$echoices), {
         for (mark in input$echoices) {
           sampleColor <- setNames(unlist(selcolors()), unique(userDF$orig_data$Sample))
-          tmp_plot <- plotTSNE(userDF$sel_data, mark, input$size, input$alpha, sampleColor, input$showDensity)
+          tmp_plot <- plotTSNE(userDF$sel_data, mark, input$size, input$alpha, sampleColor)
           name <- paste0(tmpdir, "/", mark, "-bhSNE.", input$exportFormat)
           ggplot2::ggsave(filename=name, plot=tmp_plot, device=input$exportFormat, height=8.5, width=11, units="in")
           incProgress(1)

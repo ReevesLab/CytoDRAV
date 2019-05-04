@@ -4,7 +4,10 @@
 \alias{launch_application}
 \title{Launch CytoDRAV.}
 \usage{
-launch_application(...)
+launch_application(launch.browser = T, ...)
+}
+\arguments{
+\item{launch.browser}{TRUE or FALSE. Launch default browser.}
 }
 \description{
 Function requires no parameters but accepts optional parameters
@@ -12,5 +15,5 @@ that can be passed in \code{\link[shiny]{runApp}}, such as \code{launch.browser}
 }
 \examples{
 launch_application()
-launch_application(launch.browser=TRUE)
+launch_application(launch.browser=F)
 }

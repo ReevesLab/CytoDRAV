@@ -42,9 +42,7 @@ fluidPage(
           uiOutput("overlay")),
       downloadButton("export", "Save plot"),
 
-      downloadButton("saveRDF", "Save data"), br(),
-      div(style="display: inline-block;vertical-align:top; width: 150px;",
-          checkboxInput("showDensity", "Overlay density?", value=FALSE)),
+      downloadButton("saveRDF", "Save data"),
       uiOutput("colsel"),
       plotOutput("plot", width="100%", height=750)
       ),
@@ -60,7 +58,8 @@ fluidPage(
                       numericInput("perp", "Perplexity", min=0, value=20),
                       numericInput("ndims", "Output dimensions", min=2, value=2),
                       numericInput("theta", "Theta", min=0.5, value=0.5),
-                      numericInput("eta", "Learning rate", min=50, value=200)
+                      numericInput("eta", "Learning rate", min=50, value=200),
+                      numericInput("iter", "Iterations", min = 500, max = 5000, value = 1000)
                       ),
                column(8,
                       p("Settings shown are default. Settings explained:"),
@@ -74,7 +73,7 @@ fluidPage(
                fluidRow(
                  h4("Plot Export Settings"),
                         column(2, uiOutput("exportmarkers")),
-                        column(2, selectInput("exportFormat", "Filetype:", choices = c("pdf", "png", "jpg"), 
+                        column(2, selectInput("exportFormat", "Filetype:", choices = c("pdf", "png", "jpg"),
                                               selected = "pdf")),
                         column(4,
                                div(style="display: inline-block;vertical-align:top; width: 100px;",
