@@ -1,6 +1,17 @@
 # CytoDRAV
 Dimensionality Reduction and Visualization for Flow Cytometry
 
+## Web Demo
+ * A demo version of this branch can be found [on my website](https://kroll.bio/CytoDRAVBeta)
+## New Features
+ * Color plot by density of points. 
+    - Sometimes it's useful to visually see where the high density regions of a tSNE plot are. This plotting option shows you this in a familiar blue to red scale for increasing density.
+## Other updates
+ * I've been working on cleaning up the code in the following ways:
+    - `CytoDRAV::launch_application()` now defaults to launching your default browser. You can pass `launch.browser=F` if you want to start it but not open a browser. A local link in the form `Listening on http://127.0.0.1:XXXX` will display. This is the link to the CytoDRAV page.
+    - Renaming variables to more accurately convey what data they hold
+    - Converting all variables and functions to snake_case. I am beginning to refresh my python knowledge and that is the accepted style there so I will continue it here.
+    - Commenting all code blocks. No more chunks of code without a small descriptor on what that chunk does.
 ## Installation
 If you are on a linux system please skip to step 2.
 Tested on R-3.4.4 on Mac OS, R-3.6.0 on Linux Mint 18 and Windows 10. On Windows 10 it appears all features work EXCEPT the bulk export of plots. I will be working on that.
@@ -17,7 +28,7 @@ Tested on R-3.4.4 on Mac OS, R-3.6.0 on Linux Mint 18 and Windows 10. On Windows
 2. Install R by downloading the R-3.4.4 package [here](https://cloud.r-project.org/bin/macosx/el-capitan/base/R-3.4.3.pkg). (I have tried CytoDRAV on R-3.4.4 and R-3.5.1 but have not tested on the anything newer than 3.5.1) Then in the terminal you already have open, run the command `R`. This will start an interactive R session. Run the following commands to install devtools and CytoDRAV
    ```
    if(!require(devtools)) install.packages("devtools") # If not already installed
-   devtools::install_github("ReevesLab/CytoDRAV", ref="PkgDev", force=T, dependencies=T)
+   devtools::install_github("ReevesLab/CytoDRAV", ref="Development", force=T, dependencies=T)
    ```
    This command will progress through the required packages. It may prompt you for input, please select accordingly and make sure that if it asks for you to install Bioconductor, select `yes`
    
