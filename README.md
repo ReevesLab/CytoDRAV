@@ -28,3 +28,7 @@ A live demo-version of CytoDRAV can be found at https://kroll.bio/CytoDRAV
 Note that this demo-version has a file-size limit of 50MB. The desktop version has a limit of 100MB
 
 It is recommended to downsample events before running t-SNE with CytoDRAV. 100K total events takes >30 minutes to compute.
+
+Please see the [PkgDev branch](https://github.com/ReevesLab/CytoDRAV/tree/PkgDev) for current stable package release and installation instructions. 
+
+Please see the [Development branch](https://github.com/ReevesLab/CytoDRAV/tree/Development) for beta version of CytoDRAV. This version has a new feature, plotting a density overlay on the bh-SNE results. This branch also contains a new section on the "About" tab that summarizes the parameters used for the analysis.
