@@ -55,7 +55,7 @@ function(input, output, session) {
 
   # Populates the checkbox field for markers that will be included in the bh-SNE analysis
   # Stays empty until data is loaded
-  output$markerSelect <- renderUI({
+  output$maker_select_tsne <- renderUI({
     if (is.null(input_fcs_data$orig_data) && is.null(input_fcs_data$sel_data)) return ()
     checkboxGroupInput("choices", "Markers for Analysis",
                        choices = colnames(input_fcs_data$orig_data)[!colnames(input_fcs_data$orig_data)%in%c("Sample")],
@@ -65,7 +65,7 @@ function(input, output, session) {
 
 
   # Slider to select number of events to use in analysis
-  output$numCellSelect <- renderUI({
+  output$ncell_slider <- renderUI({
     if (is.null(input_fcs_data$orig_data) && is.null(input_fcs_data$sel_data)) return ()
     sliderInput("downsample_to_ncells", "Number of events to use for Analysis",
                 min=1,

@@ -53,8 +53,8 @@ fluidPage(
                   tabPanel(title="Parameters", value = "paramtab",
                            fluidRow(
                            column(2,
-                                  uiOutput("markerSelect"),
-                                  uiOutput("numCellSelect")
+                                  uiOutput("maker_select_tsne"),
+                                  uiOutput("ncell_slider")
                                   ),
                            column(2,
                                   h4("bh-SNE Parameters"),
