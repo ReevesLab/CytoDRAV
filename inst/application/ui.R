@@ -66,7 +66,8 @@ fluidPage(
                       p("Initial PCA Step - Should PCA be computed first to initially reduce dimensions to variables that explain the most variance."),
                       p("Output dimensions - How many dimensions should the output have. Currently only display of 2 dimensions is supported."),
                       p("Theta - Speed/accuracy trade-off (increase for less accuracy), set to 0.0 for exact tSNE "),
-                      p("Learning rate - How much variation is calculated during each iteration"))
+                      p("Learning rate - How much variation is calculated during each iteration"),
+                      p("Iterations - How many iterations to run before ending the calculations. Max 5000"))
                )),
 
       tabPanel("Export",

@@ -26,6 +26,5 @@ Imports:
     MASS,
     promises,
     Rtsne,
-    shiny,
-    stringr
+    shiny
 RoxygenNote: 6.1.1

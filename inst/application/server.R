@@ -18,8 +18,6 @@ function(input, output, session) {
     userDF$orig_data <- NULL
     userDF$sel_data <- NULL
     fcsFileList <- input$file1
-    fcsFileList <- rbind(fcsFileList[!stringr::str_detect(fcsFileList[,"name"], "Live"),],
-                         fcsFileList[stringr::str_detect(fcsFileList[,"name"], "Live"),])
     rownames(fcsFileList) <- NULL
     exprsData <- loadFCS(fcsFileList, input$transform)
     userDF$markers <- colnames(exprsData)
@@ -47,8 +45,8 @@ function(input, output, session) {
 
   output$markerSelect <- renderUI({
     if (is.null(userDF$orig_data) && is.null(userDF$sel_data)) return ()
-    checkboxGroupInput("choices", "Markers for Analysis", colnames(userDF$orig_data)[!colnames(userDF$orig_data)%in%c("Sample", "Infection","Duped")],
-                       selected=NULL)
+    checkboxGroupInput("choices", "Markers for Analysis", colnames(userDF$orig_data)[!colnames(userDF$orig_data)%in%c("Sample")],
+                       selected=colnames(userDF$orig_data)[!colnames(userDF$orig_data)%in%c("Sample")])
 
   })
   output$numCellSelect <- renderUI({

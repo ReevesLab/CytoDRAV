@@ -1,5 +1,3 @@
-
-`%>%` <- dplyr::`%>%`
 # Sets outliers equal to the 1st and 99th percentile
 normData <- function(x){
   quantiles <- quantile( x, c(.01, .99 ) )
@@ -61,35 +59,59 @@ plotTSNE <- function(dataToPlot, marker, dotsize, dotalpha, sampleColor) {
 
 ## FCS Loading
 loadFCS <- function(fcsFiles, doTransform) {
-  exprsData <- data.frame()
+  fcs_dataframes <- c()
   withProgress(message="Reading FCS files...", value=0, min=0, max=length(fcsFiles[,1]), {
-  for (i in 1:length(fcsFiles[,1])) {
-    singleFCS <- flowCore::read.FCS(fcsFiles[i, "datapath"])
+    for (i in 1:length(fcsFiles[,1])) {
+      single_fcs_raw <- flowCore::read.FCS(fcsFiles[i, "datapath"])
 
-    if (isTRUE(doTransform)) {
-      lgcl <- flowCore::logicleTransform( w = 0.5, t= 262144, m = 4)
-      singleFCS <- flowCore::transform(singleFCS,
-                                       flowCore::transformList(paste(singleFCS@parameters@data$name), lgcl))
+      # Biexponential transformation. Uses a linear transformation for data around 0 and log transformation
+      # for larger values
+      if (isTRUE(doTransform)) {
+        lgcl <- flowCore::logicleTransform( w = 0.5, t= 262144, m = 4)
+        single_fcs_transformed <- flowCore::transform(single_fcs_raw,
+                                                      flowCore::transformList(paste(single_fcs_raw@parameters@data$name), lgcl))
 
+        single_fcs_df <- data.frame(single_fcs_transformed@exprs)
+      } else {
+        single_fcs_df <- data.frame(single_fcs_raw@exprs)
+      }
+
+
+    # Get the $PnS from the FCS file. If $PnS is NA (FSC, SSC, Time, Event) then use $PnN
+    column_names <- c()
+    for (j in 1:ncol(single_fcs_df)) {
+      if (is.na(single_fcs_raw@parameters@data$desc[[j]])) {
+        column_names <- c(column_names, single_fcs_raw@parameters@data$name[[j]])
+      } else {
+        column_names <- c(column_names, single_fcs_raw@parameters@data$desc[[j]])
+      }
     }
-    dff <- data.frame(singleFCS@exprs)
-    colnames(dff) <- as.vector(paste(singleFCS@parameters@data$name, singleFCS@parameters@data$desc, sep="::"))
+    colnames(single_fcs_df) <- column_names
+
+    # Use input filename as sample keyword in the dataframe
     name <- strsplit(fcsFiles[i, "name"], "[.]")[[1]][1]
-    name <- stringr::str_replace_all(name, " ", "_")
-    dff$Sample <- rep(name, nrow(dff))
-    exprsData <- rbind(exprsData, dff)
+    name <- gsub(" ", "_", name)
+    single_fcs_df$Sample <- rep(name, nrow(single_fcs_df))
+
+    # Add the single FCS data to a list of dataframes
+    fcs_dataframes[[i]] <- single_fcs_df
     incProgress(1)
-  }
+    }
   })
+
   # Flow data is gated sequentially. So if you include your 'Live' population, that will also include all your
   # other populations. This increases the number of data in you analysis, which makes it slower. This portion
   # sorts the input files from smallest to larget and removes duplicates. R works in such a way that the first event
   # it finds and removes subsequent matches.
-  exprsData$Duped <- duplicated(exprsData[,!colnames(exprsData)%in%c("Sample")])
 
-  exprsData <- exprsData %>% dplyr::filter(Duped==FALSE)
+  # Sort the list of dataframes by number of rows and join them into a single dataframe
+  fcs_dataframes = fcs_dataframes[order(sapply(fcs_dataframes,nrow),decreasing = F)]
+  exprsData <- data.frame()
+  for (i in 1:length(fcs_dataframes)) exprsData <- rbind(exprsData, fcs_dataframes[[i]])
+
+  # Remove duplicates and shuffle dataset
+  exprsData <- exprsData[!duplicated(exprsData[,!colnames(exprsData)%in%c("Sample")]),]
   exprsData <- exprsData[sample(1:nrow(exprsData)),]
-  exprsData <- exprsData[,!colnames(exprsData)%in%c("Duped")]
   return(exprsData)
 }
 
