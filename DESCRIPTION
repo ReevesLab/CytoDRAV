@@ -1,6 +1,6 @@
 Package: CytoDRAV
 Title: Dimensionality Reduction and Visualization for Flow Cytometry
-Version: 1.1.0
+Version: 1.2.0
 Date: 2019-05-03
 Authors@R: 
     person(given = "Kyle",
@@ -26,5 +26,6 @@ Imports:
     MASS,
     promises,
     Rtsne,
-    shiny
+    shiny,
+    shinyWidgets
 RoxygenNote: 6.1.1

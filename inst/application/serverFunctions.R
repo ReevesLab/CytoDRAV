@@ -58,7 +58,7 @@ loadFCS <- function(fcsFiles, doTransform) {
 }
 
 ## PLOTTING FUNCTIONS
-create_plot <- function(dataToPlot, marker, dotsize, dotalpha, sampleColor) {
+create_plot <- function(dataToPlot, marker="Sample", dotsize, dotalpha, sampleColor="black", show_legend,show_axis_labels, show_title) {
   data <- as.data.frame(dataToPlot)
   plot <- ggplot2::ggplot(data) + ggplot2::aes(x=data[,"tSNEX"], y=data[,"tSNEY"])
 
@@ -68,7 +68,7 @@ create_plot <- function(dataToPlot, marker, dotsize, dotalpha, sampleColor) {
       ggplot2::geom_point(ggplot2::aes(color=data[,marker]), size=dotsize, alpha=dotalpha) +
       ggplot2::labs(x="bh-SNE1", y="bh-SNE2", color="") +
       ggplot2::ggtitle("Sample") +
-      ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size=3)))
+      ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size=3), nrow = 1))
 
   } else if(marker == "Density") {
 
@@ -97,17 +97,21 @@ create_plot <- function(dataToPlot, marker, dotsize, dotalpha, sampleColor) {
 
 
   }
-  return(plot +
-           ggplot2::theme(panel.grid.major = ggplot2::element_blank(),
-                      panel.grid.minor = ggplot2::element_blank(),
-                      legend.text = ggplot2::element_text(size=12, face="bold"),
-                      legend.title = ggplot2::element_text(size=16, face="bold"),
-                      panel.background = ggplot2::element_blank(),
-                      axis.line = ggplot2::element_line(colour = "black"),
-                      axis.title = ggplot2::element_text(size=18, face="bold"),
-                      plot.title = ggplot2::element_text(size=18, face = "bold"),
-                      legend.position = "bottom",
-                      legend.direction = "horizontal"))
+  plot <- plot +
+    ggplot2::theme(panel.grid.major = ggplot2::element_blank(),
+                   panel.grid.minor = ggplot2::element_blank(),
+                   legend.text = ggplot2::element_text(size=12, face="bold"),
+                   legend.title = ggplot2::element_text(size=16, face="bold"),
+                   panel.background = ggplot2::element_blank(),
+                   axis.line = ggplot2::element_line(colour = "black"),
+                   axis.title = ggplot2::element_text(size=18, face="bold"),
+                   plot.title = ggplot2::element_text(size=18, face = "bold"),
+                   legend.position = "bottom",
+                   legend.direction = "horizontal")
+  if (!show_legend) plot <- plot + ggplot2::theme(legend.position="none")
+  if (!show_title) plot <- plot + ggplot2::theme(plot.title = ggplot2::element_blank())
+  if (!show_axis_labels) plot <- plot + ggplot2::theme(axis.title = ggplot2::element_blank())
+  return(plot)
 }
 
 # Sets outliers equal to the 1st and 99th percentile

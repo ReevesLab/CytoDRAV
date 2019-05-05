@@ -32,9 +32,11 @@ function(input, output, session) {
 
   # Reactive function to load a previosly saved Rdata file
   prev_data <- reactive({
+    withProgress(message="Loading previous data", {
     d <- readRDS(input$filep$datapath)
     input_fcs_data$markers <- colnames(d)
     return(d)
+    })
   })
 
   # Load FCS button. Resets ReactiveValues fields and switches user to Parameters tab automatically
@@ -157,13 +159,14 @@ function(input, output, session) {
   # Color picker to manually select colors for your samples
   sample_colors <- reactive({
     lapply(unique(input_fcs_data$orig_data$Sample), function(i) {
-      div(style="display: inline-block;vertical-align:top; width: 200px;",
-          colourpicker::colourInput(i, i, "black", palette = "limited"))
+      #div(style="display: inline-block;vertical-align:top; width: 200px;",
+          colourpicker::colourInput(i, i, "black", palette = "limited")#)
     })
   })
 
   # Populate the color selectors for samples
   output$color_selector <- renderUI({sample_colors()})
+  outputOptions(output, "color_selector", suspendWhenHidden = FALSE)
 
   # Reactive list that maps sample to its respective chosen color
   select_sample_colors <- reactive({
@@ -218,13 +221,16 @@ function(input, output, session) {
                 choices=c(input_fcs_data$markers[!input_fcs_data$markers%in%c("tSNEX", "tSNEY")], "Density"),
                 selected="Sample")
   })
+  outputOptions(output, "overlay", suspendWhenHidden = FALSE)
 
   # Creates the plots the tSNE results
   output$plot <- renderPlot({
     if (is.null(input_fcs_data$plot_style)) return ()
     if(input_fcs_data$plot_style == "tSNE") {
       sampleColor <- setNames(unlist(select_sample_colors()), unique(input_fcs_data$orig_data$Sample))
-      input_fcs_data$plot <- create_plot(input_fcs_data$sel_data, input$marker_overlay, input$size, input$alpha, sampleColor)
+      input_fcs_data$plot <- create_plot(input_fcs_data$sel_data, input$marker_overlay, input$size,
+                                         input$alpha, sampleColor, show_legend=input$show_legend,
+                                         show_axis_labels=input$show_axis_labels, show_title=input$show_title)
       input_fcs_data$plot
     }
   })
@@ -243,7 +249,9 @@ function(input, output, session) {
         for (mark in input$plot_export_markers) {
 
           sampleColor <- setNames(unlist(select_sample_colors()), unique(input_fcs_data$orig_data$Sample))
-          tmp_plot <- create_plot(input_fcs_data$sel_data, mark, input$size, input$alpha, sampleColor)
+          tmp_plot <- create_plot(input_fcs_data$sel_data, input$marker_overlay, input$size,
+                                  input$alpha, sampleColor, show_legend=input$show_legend,
+                                  show_axis_labels=input$show_axis_labels, show_title=input$show_title)
           name <- paste0(tmpdir, "/", mark, "-bhSNE.", input$exportFormat)
           ggplot2::ggsave(filename=name, plot=tmp_plot, device=input$exportFormat, height=8.5, width=11, units="in")
           incProgress(1)

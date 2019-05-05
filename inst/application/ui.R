@@ -38,15 +38,42 @@ fluidPage(
       tabsetPanel(id="apptabs",
 
                   tabPanel(title="Main", value = "maintab",
-                           div(style="display: inline-block;vertical-align:top; width: 150px;",
-                              sliderInput(inputId="size", "Dot Size", min=0.1, max=5, value=1)),
-                           div(style="display: inline-block;vertical-align:top; width: 150px;",
-                              sliderInput(inputId="alpha", "Dot alpha", min=0.1, max=1, value=1)),
-                           div(style="display: inline-block;vertical-align:top; width: 150px;",
-                              uiOutput("overlay")),
-                           downloadButton("export", "Save plot"),
-                           downloadButton("saveRDF", "Save data"),
-                           uiOutput("color_selector"),
+                           #div(style="display: inline-block;vertical-align:top; width: 150px;",
+                          #    sliderInput(inputId="size", "Dot Size", min=0.1, max=5, value=1)),
+                           #div(style="display: inline-block;vertical-align:top; width: 150px;",
+                          #    sliderInput(inputId="alpha", "Dot alpha", min=0.1, max=1, value=1)),
+                          # div(style="display: inline-block;vertical-align:top; width: 150px;",
+                          #    uiOutput("overlay")),
+                          #div(style="display: inline-block;vertical-align:top; width: 300px;",
+                           shinyWidgets::dropdownButton(
+                             fluidRow(
+                             column(width=6,
+                             sliderInput(inputId="size", "Dot Size", min=0.1, max=5, value=1),
+                             sliderInput(inputId="alpha", "Dot alpha", min=0.1, max=1, value=1),
+                             checkboxInput("show_legend", "Legend",
+                                           value=TRUE),
+                             checkboxInput("show_axis_labels", "Axis Labels",
+                                           value=TRUE),
+                             checkboxInput("show_title", "Title",
+                                           value=TRUE),
+                             downloadButton("export", "Save plot"),
+                             downloadButton("saveRDF", "Save data")),
+                             column(width=6,
+                                    uiOutput("overlay"),
+                                    uiOutput("color_selector"))),
+                             circle = TRUE, status = "danger",
+                             icon = icon("gear"), width = "300px",
+
+                             tooltip = shinyWidgets::tooltipOptions(title = "Plot Settings and Download")),
+
+                          #div(style="display: inline-block;vertical-align:top; width: 300px;",
+                          #    shinyWidgets::dropdownButton(
+                          #      uiOutput("overlay"),
+                          #      uiOutput("color_selector"),
+                          #      circle = TRUE, status = "danger",
+                          #      icon = icon("gear"), width = "300px",
+                          #      tooltip = shinyWidgets::tooltipOptions(title = "Overlay and sample colors")
+                          #    )),
                            plotOutput("plot", width="100%", height=750)
                           ),
 
