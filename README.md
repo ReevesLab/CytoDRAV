@@ -37,9 +37,13 @@ Tested on R-3.4.4 on Mac OS, R-3.6.0 on Linux Mint 18 and Windows 10. On Windows
 4. In the terminal enter the following lines, hitting return after each line:
     ```
     cd ~/Desktop
-    printf '#!/bin/bash\nR -e "CytoDRAV::launch_application(launch.browser=T)"' > RunCytoDRAV
+    printf '#!/bin/bash\nR -e "CytoDRAV::launch_application()"' > RunCytoDRAV
     chmod +x RunCytoDRAV
     ```
 5. You can now run CytoDRAV but double clicking the `RunCytoDRAV` script. This will launch a terminal window for progress and it will launch your default browser to the CytoDRAV page. 
+    * Alternatively you can open a new terminal and enter the following command to launch CytoDRAV
+        ```
+        R --slave --no-restore -e "CytoDRAV::launch_application()"
+        ```
 
 CytoDRAV works best with 100,000 events and under. You can use more but it exponentially increases time to compute and the time to plot increases drastically. To downsample events you can either pre-downsample in FlowJo, or under the Settings tab there is a slider at the bottom to choose number of events. 10,000 events is fairly quick to compute just to demonstrate the program.
