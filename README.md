@@ -12,6 +12,12 @@ Dimensionality Reduction and Visualization for Flow Cytometry
     - Renaming variables to more accurately convey what data they hold
     - Converting all variables and functions to snake_case. I am beginning to refresh my python knowledge and that is the accepted style there so I will continue it here.
     - Commenting all code blocks. No more chunks of code without a small descriptor on what that chunk does.
+## Planned updates
+ * Enable OpenMP support. Rtsne takes an optional parameters `num_threads` Initial testing gives errors, which I believe are due to the fact that I am launching the Rtsne call on a separate thread than the main CytoDRAV application. I will need to test this a lot to see if I can narrow down the error.
+ * More options for plot aesthetics. Many people (our lab included) prefer to add figure legends and text using software such as GraphPad Prism. I will be adding options for the following:
+    - Hide: legend, title, axis labels
+    - Modify: axis tick and tick label font size; plot background color
+ * There is a package that adds in shiny widgets which I think might be useful for the figure update. This would allow you to change the settings from a small widget icon instead of switching between tabs
 ## Installation
 If you are on a linux system please skip to step 2.
 Tested on R-3.4.4 on Mac OS, R-3.6.0 on Linux Mint 18 and Windows 10. On Windows 10 it appears all features work EXCEPT the bulk export of plots. I will be working on that.
