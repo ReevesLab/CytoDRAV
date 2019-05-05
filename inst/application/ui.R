@@ -90,7 +90,10 @@ fluidPage(
                                   numericInput("ndims", "Output dimensions", min=2, value=2),
                                   numericInput("theta", "Theta", min=0.5, value=0.5),
                                   numericInput("eta", "Learning rate", min=50, value=200),
-                                  numericInput("iter", "Iterations", min = 500, max = 5000, value = 1000)
+                                  numericInput("iter", "Iterations", min = 500, max = 5000, value = 1000),
+                                  selectInput("n_threads", "Number of Threads",
+                                              choices = seq(1:(unname(future::availableCores())-1)),
+                                              selected = 1)
                                   ),
                            column(8,
                                   p("Settings shown are default. Settings explained:"),

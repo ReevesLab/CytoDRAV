@@ -105,7 +105,7 @@ function(input, output, session) {
     dims <- isolate(input$ndims)
     pca <- isolate(input$initpca)
     iter <- isolate(input$iter)
-
+    n_threads <- as.double(isolate(input$n_threads))
     # I don't know why I need to sink() twice but this makes the logging work.
     sink(tmpfile, type=c("output", "message"), append=FALSE)
     future::future({
@@ -117,7 +117,8 @@ function(input, output, session) {
                    dims=dims,
                    pca=pca,
                    max_iter=iter,
-                   check_duplicates = FALSE)
+                   check_duplicates = FALSE,
+                   num_threads=n_threads)
     }) %...>%
       (function(tsne) {
         # Add tSNE results to dataframe
