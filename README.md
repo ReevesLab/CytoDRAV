@@ -2,7 +2,7 @@
 Dimensionality Reduction and Visualization for Flow Cytometry
 
 ## Web Demo
- * A demo version of this branch can be found [on my website](https://kroll.bio/CytoDRAVBeta)
+ * A demo version of this branch can be found [on my website Kroll.Bio](https://kroll.bio/CytoDRAVBeta). This verison is limited to demo files only. This is just for demonstration on how CytoDRAV works so I have restricted it to files that are not large and can be quick to compute.
 ## New Features
  * Color plot by density of points. 
     - Sometimes it's useful to visually see where the high density regions of a tSNE plot are. This plotting option shows you this in a familiar blue to red scale for increasing density.
@@ -12,6 +12,12 @@ Dimensionality Reduction and Visualization for Flow Cytometry
     - Renaming variables to more accurately convey what data they hold
     - Converting all variables and functions to snake_case. I am beginning to refresh my python knowledge and that is the accepted style there so I will continue it here.
     - Commenting all code blocks. No more chunks of code without a small descriptor on what that chunk does.
+## Planned updates
+ * Enable OpenMP support. Rtsne takes an optional parameters `num_threads` Initial testing gives errors, which I believe are due to the fact that I am launching the Rtsne call on a separate thread than the main CytoDRAV application. I will need to test this a lot to see if I can narrow down the error.
+ * More options for plot aesthetics. Many people (our lab included) prefer to add figure legends and text using software such as GraphPad Prism. I will be adding options for the following:
+    - Hide: legend, title, axis labels
+    - Modify: axis tick and tick label font size; plot background color
+ * There is a package that adds in shiny widgets which I think might be useful for the figure update. This would allow you to change the settings from a small widget icon instead of switching between tabs
 ## Installation
 If you are on a linux system please skip to step 2.
 Tested on R-3.4.4 on Mac OS, R-3.6.0 on Linux Mint 18 and Windows 10. On Windows 10 it appears all features work EXCEPT the bulk export of plots. I will be working on that.
@@ -37,9 +43,13 @@ Tested on R-3.4.4 on Mac OS, R-3.6.0 on Linux Mint 18 and Windows 10. On Windows
 4. In the terminal enter the following lines, hitting return after each line:
     ```
     cd ~/Desktop
-    printf '#!/bin/bash\nR -e "CytoDRAV::launch_application(launch.browser=T)"' > RunCytoDRAV
+    printf '#!/bin/bash\nR -e "CytoDRAV::launch_application()"' > RunCytoDRAV
     chmod +x RunCytoDRAV
     ```
 5. You can now run CytoDRAV but double clicking the `RunCytoDRAV` script. This will launch a terminal window for progress and it will launch your default browser to the CytoDRAV page. 
+    * Alternatively you can open a new terminal and enter the following command to launch CytoDRAV
+        ```
+        R --slave --no-restore -e "CytoDRAV::launch_application()"
+        ```
 
 CytoDRAV works best with 100,000 events and under. You can use more but it exponentially increases time to compute and the time to plot increases drastically. To downsample events you can either pre-downsample in FlowJo, or under the Settings tab there is a slider at the bottom to choose number of events. 10,000 events is fairly quick to compute just to demonstrate the program.
