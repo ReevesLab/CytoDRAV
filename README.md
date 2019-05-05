@@ -6,6 +6,7 @@ Dimensionality Reduction and Visualization for Flow Cytometry
 ## New Features
  * Color plot by density of points. 
     - Sometimes it's useful to visually see where the high density regions of a tSNE plot are. This plotting option shows you this in a familiar blue to red scale for increasing density.
+ * Moved plot settings and download buttons into a dropdown menu. Helps to give the actual plot more screen real estate.
 ## Other updates
  * I've been working on cleaning up the code in the following ways:
     - `CytoDRAV::launch_application()` now defaults to launching your default browser. You can pass `launch.browser=F` if you want to start it but not open a browser. A local link in the form `Listening on http://127.0.0.1:XXXX` will display. This is the link to the CytoDRAV page.
@@ -15,7 +16,7 @@ Dimensionality Reduction and Visualization for Flow Cytometry
 ## Planned updates
  * Enable OpenMP support. Rtsne takes an optional parameters `num_threads` Initial testing gives errors, which I believe are due to the fact that I am launching the Rtsne call on a separate thread than the main CytoDRAV application. I will need to test this a lot to see if I can narrow down the error.
  * More options for plot aesthetics. Many people (our lab included) prefer to add figure legends and text using software such as GraphPad Prism. I will be adding options for the following:
-    - Hide: legend, title, axis labels
+    - ~~Hide: legend, title, axis labels~~ Added 2019-05-05
     - Modify: axis tick and tick label font size; plot background color
  * There is a package that adds in shiny widgets which I think might be useful for the figure update. This would allow you to change the settings from a small widget icon instead of switching between tabs
 ## Installation
