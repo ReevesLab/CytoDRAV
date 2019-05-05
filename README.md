@@ -2,7 +2,7 @@
 Dimensionality Reduction and Visualization for Flow Cytometry
 
 ## Web Demo
- * A demo version of this branch can be found [on my website](https://kroll.bio/CytoDRAVBeta)
+ * A demo version of this branch can be found [on my website Kroll.Bio](https://kroll.bio/CytoDRAVBeta). This verison is limited to demo files only. This is just for demonstration on how CytoDRAV works so I have restricted it to files that are not large and can be quick to compute.
 ## New Features
  * Color plot by density of points. 
     - Sometimes it's useful to visually see where the high density regions of a tSNE plot are. This plotting option shows you this in a familiar blue to red scale for increasing density.
