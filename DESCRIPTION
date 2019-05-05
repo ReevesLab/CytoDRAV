@@ -23,7 +23,6 @@ Imports:
     flowCore,
     future,
     ggplot2,
-    MASS,
     promises,
     Rtsne,
     shiny,

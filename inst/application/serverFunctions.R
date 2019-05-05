@@ -71,12 +71,15 @@ create_plot <- function(dataToPlot, marker="Sample", dotsize, dotalpha, sampleCo
       ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size=3), nrow = 1))
 
   } else if(marker == "Density") {
-
-    dens <- get_density(data$tSNEX, data$tSNEY, n = 500)
-    plot <- ggplot2::ggplot(data, ggplot2::aes(tSNEX, tSNEY)) +
-      ggplot2::geom_point(ggplot2::aes(color = dens), alpha=dotalpha, size=dotsize) +
-      ggplot2::scale_color_gradientn(colors=c("blue", "green", "yellow", "red" ),
-                                     breaks=c(min(dens), median(dens), max(dens)),
+    df <- data
+    x <- densCols(df$tSNEX,df$tSNEY, colramp=colorRampPalette(c("black", "white")))
+    df$dens <- col2rgb(x)[1,] + 1L
+    cols <-  colorRampPalette(c("#000099", "#00FEFF", "#45FE4F","#FCFF00", "#FF9400", "#FF3100"))(256)
+    df$col <- cols[df$dens]
+    plot <- ggplot2::ggplot(df[order(df$dens),], ggplot2::aes(tSNEX, tSNEY, color = dens)) +
+      ggplot2::geom_point(size=dotsize, alpha=dotalpha) +
+      ggplot2::scale_color_gradientn(colors = unique(df[order(df$dens),'col']),
+                                     breaks = c(min(df$dens), median(df$dens), max(df$dens)),
                                      labels = c("Low", "", "High")) +
       ggplot2::labs(x="bh-SNE1", y="bh-SNE2", color="") +
       ggplot2::ggtitle("Density") +
