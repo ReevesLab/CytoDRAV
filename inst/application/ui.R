@@ -54,8 +54,8 @@ fluidPage(
                              column(width=6,
                                     uiOutput("overlay"),
                                     uiOutput("color_selector"))),
-                             circle = TRUE, status = "danger",
-                             icon = icon("gear"), width = "300px",
+                             circle = FALSE, status = "danger",
+                             icon = icon("sliders-h"), width = "300px",
 
                              tooltip = shinyWidgets::tooltipOptions(title = "Plot Settings and Download")),
                           plotOutput("plot", width="100%", height=750)

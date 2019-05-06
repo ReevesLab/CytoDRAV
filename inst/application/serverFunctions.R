@@ -1,4 +1,3 @@
-
 ## FCS Loading
 loadFCS <- function(fcsFiles, doTransform) {
   fcs_dataframes <- c()
@@ -9,7 +8,11 @@ loadFCS <- function(fcsFiles, doTransform) {
       # Biexponential transformation. Uses a linear transformation for data around 0 and log transformation
       # for larger values
       if (isTRUE(doTransform)) {
-        lgcl <- flowCore::logicleTransform( w = 0.5, t= 262144, m = 4)
+        m = 4.5
+        t = 262144
+        r = min(single_fcs_raw@exprs)
+        w = w=(m-log10(t/abs(r)))/2
+        lgcl <- flowCore::logicleTransform( w = w, t= t, m = m)
         single_fcs_transformed <- flowCore::transform(single_fcs_raw,
                                                       flowCore::transformList(paste(single_fcs_raw@parameters@data$name), lgcl))
 
