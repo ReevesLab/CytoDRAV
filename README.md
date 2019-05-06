@@ -32,7 +32,7 @@ Tested on R-3.4.4 on Mac OS, R-3.6.0 on Linux Mint 18 and Windows 10. On Windows
     use "Software Update" to install updates
     ```
     or a window will pop-up prompting you to install the command line tools. Complete this installation before proceeding.
-2. Install R by downloading the R-3.4.4 package [here](https://cloud.r-project.org/bin/macosx/el-capitan/base/R-3.4.3.pkg). (I have tried CytoDRAV on R-3.4.4 and R-3.5.1 but have not tested on the anything newer than 3.5.1) Then in the terminal you already have open, run the command `R`. This will start an interactive R session. Run the following commands to install devtools and CytoDRAV
+2. Install R by downloading the R package [here](https://cran.r-project.org/). (CytoDRAV should work with any R >= 3.4.4) Then in the terminal you already have open, run the command `R`. This will start an interactive R session. Run the following commands to install devtools and CytoDRAV
    ```
    if(!require(devtools)) install.packages("devtools") # If not already installed
    devtools::install_github("ReevesLab/CytoDRAV", ref="Development", force=T, dependencies=T)
