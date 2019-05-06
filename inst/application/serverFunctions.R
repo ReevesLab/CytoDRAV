@@ -10,8 +10,8 @@ loadFCS <- function(fcsFiles, doTransform) {
       if (isTRUE(doTransform)) {
         m = 4.5
         t = 262144
-        r = min(single_fcs_raw@exprs)
-        w = w=(m-log10(t/abs(r)))/2
+
+        w = 1.5
         lgcl <- flowCore::logicleTransform( w = w, t= t, m = m)
         single_fcs_transformed <- flowCore::transform(single_fcs_raw,
                                                       flowCore::transformList(paste(single_fcs_raw@parameters@data$name), lgcl))
