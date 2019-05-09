@@ -24,7 +24,7 @@ Note: This package was built on Mac OS X Movaje (10.14.4). I have tested it on L
 4. Install required R packages by running the following command: `Rscript install_req.R`
     Note: This can take several minutes to complete.
 5. If there are no errors CytoDRAV can be launched by running the following command: `Rscript runCytoDRAV.R`
-    If there are errors could you please copy and email them to me at kkroll1 (at) bidmc (dot) harvard (dot) edut
+    If there are errors could you please copy and email them to me at kkroll1 (at) bidmc (dot) harvard (dot) edu
 6. Alternatively, from the terminal you can type `chmod +x launch` and then you can double click the `launch` file to run CytoDRAV. It should open automatically in your default browser.
 
 A live demo-version of CytoDRAV can be found at https://kroll.bio/CytoDRAV
