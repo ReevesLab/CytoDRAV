@@ -1,7 +1,12 @@
 # CytoDRAV
 Dimensionality Reduction and Visualization for Flow Cytometry
+
 ## Web Demo
  * A demo version of this branch can be found [on my website](https://kroll.bio/CytoDRAV). 
+
+ * Please see the [Development branch](https://github.com/ReevesLab/CytoDRAV/tree/Development) for beta version of CytoDRAV. This version has a new feature, plotting a density overlay on the bh-SNE results. This branch also contains a new section on the "About" tab that summarizes the parameters used for the analysis.
+
+
 ## Installation
 If you are on a linux system please skip to step 2. For windows you must have gcc installed. I recommend [MinGW](https://osdn.net/projects/mingw/releases/p15522).
 
@@ -17,6 +22,7 @@ Tested on R-3.4.4 on Mac OS, R-3.6.0 on Linux Mint 18 and Windows 10.
     use "Software Update" to install updates
     ```
     or a window will pop-up prompting you to install the command line tools. Complete this installation before proceeding.
+
 2. Install R by downloading the R package [here](https://cran.r-project.org/) (CytoDRAV has been tested on R-3.4.4 and R-3.6.0). Then in the terminal you already have open, run the command `R`. This will start an interactive R session. Run the following commands to install devtools and CytoDRAV
    ```
    if(!require(devtools)) install.packages("devtools") # If not already installed
@@ -37,5 +43,6 @@ Tested on R-3.4.4 on Mac OS, R-3.6.0 on Linux Mint 18 and Windows 10.
         ```
         R --slave --no-restore -e "CytoDRAV::launch_application()"
         ```
+
 
 CytoDRAV works best with 100,000 events and under. You can use more but it exponentially increases time to compute and the time to plot increases drastically. To downsample events you can either pre-downsample in FlowJo, or under the Settings tab there is a slider at the bottom to choose number of events. 10,000 events is fairly quick to compute just to demonstrate the program.
