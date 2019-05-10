@@ -1,14 +1,5 @@
-library(shiny)
-library(flowCore)
-library(promises)
-library(future)
-library(dplyr)
-library(stringr)
-library(colourpicker)
-library(Rtsne)
-library(ggplot2)
 source("./serverFunctions.R")
-plan(multiprocess)
+future::plan(future::multiprocess)
 
 
 #Default max file size is only 5MB. This ups that limit to 30MB
@@ -17,17 +8,18 @@ options(shiny.maxRequestSize=100*1024^2)
 # Needed for display of bh-SNE progress
 tmpfile <- tempfile()
 tmpdir <- tempdir()
-
+`%...>%` <- promises::`%...>%`
 # Main server function
 function(input, output, session) {
-  
-  userDF <- reactiveValues(orig_data=NULL, markers=NULL, plotstyle=NULL, sel_data=NULL)
+
+  userDF <- shiny::reactiveValues(orig_data=NULL, markers=NULL, plotstyle=NULL, sel_data=NULL)
 
   load_data <- reactive({
     userDF$orig_data <- NULL
     userDF$sel_data <- NULL
     fcsFileList <- input$file1
-    fcsFileList <- rbind(fcsFileList[!str_detect(fcsFileList[,"name"], "Live"),], fcsFileList[str_detect(fcsFileList[,"name"], "Live"),])
+    fcsFileList <- rbind(fcsFileList[!stringr::str_detect(fcsFileList[,"name"], "Live"),],
+                         fcsFileList[stringr::str_detect(fcsFileList[,"name"], "Live"),])
     rownames(fcsFileList) <- NULL
     exprsData <- loadFCS(fcsFileList, input$transform)
     userDF$markers <- colnames(exprsData)
@@ -41,6 +33,7 @@ function(input, output, session) {
   })
 
   observeEvent(input$loadfcs, {
+    userDF$plotstyle <- NULL
     userDF$markers <- NULL
     userDF$orig_data <- load_data()
   })
@@ -87,9 +80,9 @@ function(input, output, session) {
     pca=input$initpca
     sink(tmpfile, type=c("output", "message"), append=FALSE)
 
-    future({
+    future::future({
       sink(tmpfile, type=c("output", "message"), append=FALSE)
-      Rtsne(tmp, verbose=TRUE, perplexity=perp,
+      Rtsne::Rtsne(tmp, verbose=TRUE, perplexity=perp,
             theta=theta, eta=eta,
             dims=dims, pca=pca, check_duplicates = FALSE)
     }) %...>%
@@ -104,7 +97,8 @@ function(input, output, session) {
   # Color picker to manually select colors for your samples
   cols <- reactive({
     lapply(unique(userDF$orig_data$Sample), function(i) {
-      div(style="display: inline-block;vertical-align:top; width: 200px;", colourInput(i, i, "black", palette = "limited"))
+      div(style="display: inline-block;vertical-align:top; width: 200px;",
+          colourpicker::colourInput(i, i, "black", palette = "limited"))
     })
   })
 
@@ -141,7 +135,7 @@ function(input, output, session) {
   output$export = downloadHandler(
     filename = function() {paste(input$moverlay, ".pdf", input$format, sep="")},
     content = function(file) {
-      ggsave(file, plot=userDF$plot, device = "pdf", dpi=300, width=11, height=8.5, units="in")
+      ggplot2::ggsave(file, plot=userDF$plot, device = "pdf", dpi=300, width=11, height=8.5, units="in")
 
     }
   )
@@ -158,16 +152,6 @@ function(input, output, session) {
     if (is.null(userDF$markers)) return ()
     selectInput(inputId="moverlay", "Color", choices=userDF$markers, selected="Sample")
   })
-  output$plotlyMarkers1 <- renderUI({
-    if (is.null(userDF$markers)) return ()
-    div(style="display: inline-block;vertical-align:top; width: 150px;",
-        selectInput(inputId="intMarkerX", "X-Axis", choices=userDF$markers, selected=userDF$markers[[1]]))
-  })
-  output$plotlyMarkers2 <- renderUI({
-    if (is.null(userDF$markers)) return ()
-    div(style="display: inline-block;vertical-align:top; width: 150px;",
-        selectInput(inputId="intMarkerY", "Y-Axis", choices=userDF$markers, selected=userDF$markers[[2]]))
-  })
 
 
   output$plot <- renderPlot({
@@ -178,22 +162,6 @@ function(input, output, session) {
       userDF$plot
     }
   })
-
-#  output$plotlySelected <- renderPlot({
-#    event.data <- event_data("plotly_selected")
-
-    # If NULL dont do anything
-#    if(is.null(event.data) == T) return(NULL)
-
-
-#    new_data <- as.data.frame(userDF$sel_data[event.data$pointNumber+1,])
-
-
-#    ggplot(new_data) + aes(x=new_data[,input$intMarkerX], y=new_data[,input$intMarkerY]) + geom_point() + labs(x=paste(input$intMarkerX), y=paste(input$intMarkerY)) +
-#      xlim(min(userDF$sel_data[,input$intMarkerX]),max(userDF$sel_data[,input$intMarkerX])) +
-#      ylim(min(userDF$sel_data[,input$intMarkerY]),max(userDF$sel_data[,input$intMarkerY]))
-
-#  })
 
   observeEvent(input$genPlots, {
 
@@ -206,7 +174,7 @@ function(input, output, session) {
           sampleColor <- setNames(unlist(selcolors()), unique(userDF$orig_data$Sample))
           tmp_plot <- plotTSNE(userDF$sel_data, mark, input$size, input$alpha, sampleColor, input$showDensity)
           name <- paste0(tmpdir, "/", mark, "-bhSNE.", input$exportFormat)
-          ggsave(filename=name, plot=tmp_plot, device=input$exportFormat, height=8.5, width=11, units="in")
+          ggplot2::ggsave(filename=name, plot=tmp_plot, device=input$exportFormat, height=8.5, width=11, units="in")
           incProgress(1)
         }
       })
