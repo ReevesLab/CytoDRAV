@@ -26,7 +26,7 @@ Tested on R-3.4.4 on Mac OS, R-3.6.0 on Linux Mint 18 and Windows 10.
 2. Install R by downloading the R package [here](https://cran.r-project.org/) (CytoDRAV has been tested on R-3.4.4 and R-3.6.0). Then in the terminal you already have open, run the command `R`. This will start an interactive R session. Run the following commands to install devtools and CytoDRAV
    ```
    if(!require(devtools)) install.packages("devtools") # If not already installed
-   devtools::install_github("ReevesLab/CytoDRAV", ref="Development", force=T, dependencies=T)
+   devtools::install_github("ReevesLab/CytoDRAV", force=T, dependencies=T)
    ```
    This command will progress through the required packages. It may prompt you for input, please select accordingly and make sure that if it asks for you to install Bioconductor, select `yes`
    
