@@ -10,7 +10,6 @@ loadFCS <- function(fcsFiles, doTransform) {
       if (isTRUE(doTransform)) {
         m = 4.5
         t = 262144
-
         w = 1.5
         lgcl <- flowCore::logicleTransform( w = w, t= t, m = m)
         single_fcs_transformed <- flowCore::transform(single_fcs_raw,
