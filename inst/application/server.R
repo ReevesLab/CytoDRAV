@@ -250,9 +250,14 @@ function(input, output, session) {
         for (mark in input$plot_export_markers) {
 
           sampleColor <- setNames(unlist(select_sample_colors()), unique(input_fcs_data$orig_data$Sample))
-          tmp_plot <- create_plot(input_fcs_data$sel_data, mark, input$size,
-                                  input$alpha, sampleColor, show_legend=input$show_legend,
-                                  show_axis_labels=input$show_axis_labels, show_title=input$show_title)
+          tmp_plot <- create_plot(dataToPlot=input_fcs_data$sel_data,
+                                  marker=mark,
+                                  dotsize=input$size,
+                                  dotalpha=input$alpha,
+                                  sampleColor=sampleColor,
+                                  show_legend=input$show_legend,
+                                  show_axis_labels=input$show_axis_labels,
+                                  show_title=input$show_title)
           name <- paste0(tmpdir, "/", mark, "-bhSNE.", input$exportFormat)
           ggplot2::ggsave(filename=name, plot=tmp_plot, device=input$exportFormat, height=8.5, width=11, units="in")
           incProgress(1)
