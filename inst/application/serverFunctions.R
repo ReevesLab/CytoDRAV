@@ -35,7 +35,9 @@ loadFCS <- function(fcsFiles, doTransform) {
       # Use input filename as sample keyword in the dataframe
       name <- strsplit(fcsFiles[i, "name"], "[.]")[[1]][1]
       name <- gsub(" ", "_", name)
-      single_fcs_df$Sample <- rep(name, nrow(single_fcs_df))
+      name <- gsub("\\+", ".POS", name)
+      name <- gsub("\\-", ".NEG", name)
+      single_fcs_df$Sample <- as.character(rep(name, nrow(single_fcs_df)))
 
       # Add the single FCS data to a list of dataframes
       fcs_dataframes[[i]] <- single_fcs_df

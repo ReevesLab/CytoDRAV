@@ -159,7 +159,7 @@ function(input, output, session) {
 
   # Color picker to manually select colors for your samples
   sample_colors <- reactive({
-    lapply(unique(input_fcs_data$orig_data$Sample), function(i) {
+    lapply(unique(as.character(input_fcs_data$orig_data$Sample)), function(i) {
       #div(style="display: inline-block;vertical-align:top; width: 200px;",
           colourpicker::colourInput(i, i, "black", palette = "limited")#)
     })
