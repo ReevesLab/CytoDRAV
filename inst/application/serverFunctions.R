@@ -6,7 +6,7 @@
 # Offloaded these functions to create a distinction between shiny code and behind the scenes R code
 
 # Outlier correction for plots ----
-normData <- function(x){
+norm_data <- function(x){
   quantiles <- quantile( x, c(.01, .99 ) )
   x[ x < quantiles[1] ] <- quantiles[1]
   x[ x > quantiles[2] ] <- quantiles[2]

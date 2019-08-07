@@ -65,7 +65,9 @@
                                                           )
                                                  )
                                      )
-                            )
+                            ),
+                            tabPanel("About",
+                                     uiOutput("about_section"))
                 )
             )
         )
