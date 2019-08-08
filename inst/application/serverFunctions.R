@@ -13,14 +13,42 @@ norm_data <- function(x){
   x
 }
 # Plotting function ----
-create_plot <- function(dataToPlot, marker, dotsize, dotalpha, show_legend,show_axis_labels, show_title) {
-    data <- as.data.frame(dataToPlot)
-    plot <- ggplot2::ggplot(data) + 
-        ggplot2::aes(x=data[, "tSNEX"], y=data[, "tSNEY"]) +
-        ggplot2::geom_point(ggplot2::aes(color=data[, marker]),size=dotsize, alpha=dotalpha) +
-        ggplot2::labs(x=x, y=y, color="") +
-        ggplot2::ggtitle("Population") +
-        ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size=3), nrow = 1)) +
+create_plot <- function(data, marker, method, dotsize, dotalpha, sample_color="black", show_legend,show_axis_labels, show_title) {
+    data <- as.data.frame(data)
+    if (method == "bh-SNE") {
+        x <- "tSNEX"
+        y <- "tSNEY"
+        xl <- "bh-SNE1"
+        yl <- "bh-SNE2"
+    } else if (method == "UMAP") {
+        x <- "UMAP1"
+        y <- "UMAP2"
+        xl <- "UMAP1"
+        yl <- "UMAP2"
+    }
+    plot <- ggplot2::ggplot(data) + ggplot2::aes(x=data[, x], y=data[, y]) 
+    
+    if (marker == "Population") {
+        plot <- plot + ggplot2::scale_colour_manual(values=sample_color) +
+            ggplot2::geom_point(ggplot2::aes(color=data[, marker]), size=dotsize, alpha=dotalpha) +
+            ggplot2::labs(x=xl, y=yl, color="") +
+            ggplot2::ggtitle(marker) +
+            ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size=3), nrow = 1))
+        
+    } else {
+        plot <- plot +
+            ggplot2::geom_point(ggplot2::aes(color=norm_data(data[, marker])), size=dotsize, alpha=dotalpha) +
+            ggplot2::scale_color_gradientn(colors=c("blue", "cyan", "yellow", "red" ),
+                                           breaks=c(min(norm_data(data[, marker])),
+                                                    median(norm_data(data[, marker])),
+                                                    max(norm_data(data[, marker]))),
+                                           labels = c("Low", "", "High")) +
+            ggplot2::labs(x=xl, y=yl, color="") +
+            ggplot2::ggtitle(marker) +
+            ggplot2::guides(colour = ggplot2::guide_colourbar(title = ggplot2::waiver(), barwidth = 25))
+        
+    }
+    plot <- plot +
         ggplot2::theme(panel.grid.major = ggplot2::element_blank(),
                        panel.grid.minor = ggplot2::element_blank(),
                        legend.text = ggplot2::element_text(size=12, face="bold"),
@@ -36,7 +64,6 @@ create_plot <- function(dataToPlot, marker, dotsize, dotalpha, show_legend,show_
     if (!show_axis_labels) plot <- plot + ggplot2::theme(axis.title = ggplot2::element_blank())
     return(plot)
 }
-
 # Z-score transform ----
 z_transform <- function(x) {
     zVar <- (x - mean(x)) / sd(x)
