@@ -9,7 +9,7 @@ Authors@R:
            email = "kylekroll@outlook.com"),
     person(given = "R. Keith",
            family = "Reeves",
-           role = c("aut", "cph))
+           role = c("aut", "cph"))
 	)
 Description: CytoDRAV allows researchers with minimal programming experience harness
   the power of R to perform t-SNE analysis on flow cytometry data. The results of the
