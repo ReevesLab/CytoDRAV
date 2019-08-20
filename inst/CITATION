@@ -4,7 +4,7 @@ note <- sprintf("R package version %s", meta$Version)
 bibentry(bibtype = "Manual",
          title = "{CytoDRAV}: Dimensionality Reduction and Visualization for Flow Cytometry",
          author = c(person("Kyle", "Kroll"),
-                    person("R. Keith", "Reeves"))
+                    person("R. Keith", "Reeves")),
          year = year,
          note = note,
          url = "https://github.com/ReevesLab/CytoDRAV")
