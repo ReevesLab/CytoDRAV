@@ -3,12 +3,14 @@ Title: Dimensionality Reduction and Visualization for Flow Cytometry
 Version: 1.5.0
 Date: 2019-08-20
 Authors@R: 
-    person(given = "Kyle",
+    c(person(given = "Kyle",
            family = "Kroll",
            role = c("aut", "cre"),
-           email = "kylekroll@outlook.com")
-Author: Kyle Kroll
-Maintainer: Kyle Kroll <kylekroll@outlook.com>
+           email = "kylekroll@outlook.com"),
+    person(given = "R. Keith",
+           family = "Reeves",
+           role = c("aut", "cph))
+	)
 Description: CytoDRAV allows researchers with minimal programming experience harness
   the power of R to perform t-SNE analysis on flow cytometry data. The results of the
   t-SNE analysis are visualized with ggplot2 for publication ready figures.
