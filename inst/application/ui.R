@@ -17,7 +17,8 @@ fluidPage(
       hr(),
       fluidRow(
         actionButton("run_tsne", "Run bh-SNE"),
-        actionButton("plot_tsne", "Plot bh-SNE")
+        actionButton("plot_tsne", "Plot bh-SNE"),
+        actionButton("run_rpheno", "Run Phenograph")
       ),
       div(id="outDiv", verbatimTextOutput("consoletext")),
       tags$head(tags$style("#outDiv{overflow-y:scroll; max-height: 100px;}")),

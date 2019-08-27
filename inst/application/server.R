@@ -13,6 +13,8 @@ tmpdir <- tempdir()
 # Importing just this operator from promises
 `%...>%` <- promises::`%...>%`
 
+`%>%` <- dplyr::`%>%`
+
 # Main server function for CytoDRAV
 function(input, output, session) {
 
@@ -106,43 +108,83 @@ function(input, output, session) {
     pca <- isolate(input$initpca)
     iter <- isolate(input$iter)
     n_threads <- as.double(isolate(input$n_threads))
-    # I don't know why I need to sink() twice but this makes the logging work.
-    sink(tmpfile, type=c("output", "message"), append=FALSE)
-    future::future({
+    # I don't know why I need to sink.reset() twice but this makes the logging work.
+    #withProgress({
       sink(tmpfile, type=c("output", "message"), append=FALSE)
-      Rtsne::Rtsne(tmp, verbose=TRUE,
-                   perplexity=perp,
-                   theta=theta,
-                   eta=eta,
-                   dims=dims,
-                   pca=pca,
-                   max_iter=iter,
-                   check_duplicates = FALSE,
-                   num_threads=n_threads)
-    }) %...>%
-      (function(tsne) {
-        # Add tSNE results to dataframe
-        input_fcs_data$sel_data$tSNEX <- tsne$Y[,1]
-        input_fcs_data$sel_data$tSNEY <- tsne$Y[,2]
+      future::future({
+        sink(tmpfile, type=c("output", "message"), append=FALSE)
+        Rtsne::Rtsne(tmp, verbose=TRUE,
+                     perplexity=perp,
+                     theta=theta,
+                     eta=eta,
+                     dims=dims,
+                     pca=pca,
+                     max_iter=iter,
+                     check_duplicates = FALSE,
+                     num_threads=n_threads)
+        #tsne <- uwot::umap(tmp,
+        #           metric = "manhattan",
+        #           verbose = TRUE,
+        #           n_threads = n_threads)
+      }) %...>%
+        (function(tsne) {
+          # Add tSNE results to dataframe
+          input_fcs_data$sel_data$tSNEX <- tsne$Y[,1]
+          input_fcs_data$sel_data$tSNEY <- tsne$Y[,2]
+          #input_fcs_data$sel_data$tSNEX <- tsne[,1]
+          #input_fcs_data$sel_data$tSNEY <- tsne[,2]
 
-        # Adds comments to dataframe with the parameters used for analysis.
-        # This information is printed to the About tab
-        comment(input_fcs_data$sel_data$tSNEX) <- paste0("tSNE Settings", "<ul>",
-                                                         "<li>Perplexity: ", perp,
-                                                         "<li>Output Dims: ", dims,
-                                                         "<li>Theta: ", theta,
-                                                         "<li>Learning Rate: ", eta,
-                                                         "<li>PCA performed: ", pca,
-                                                         "<li>Iterations: ", iter, "</ul>")
-        comment(input_fcs_data$sel_data$tSNEY) <- paste0("<br/>Selected Markers:", "<ul><li>",
-                                                         paste(chosen_markers, collapse = "<li>"), "</ul>")
-        comment(input_fcs_data$sel_data$Sample) <- paste0("Data Transformed: ",
-                                                          input$transform)
-      })
-    sink()
+          # Adds comments to dataframe with the parameters used for analysis.
+          # This information is printed to the About tab
+          comment(input_fcs_data$sel_data$tSNEX) <- paste0("tSNE Settings", "<ul>",
+                                                           "<li>Perplexity: ", perp,
+                                                           "<li>Output Dims: ", dims,
+                                                           "<li>Theta: ", theta,
+                                                           "<li>Learning Rate: ", eta,
+                                                           "<li>PCA performed: ", pca,
+                                                           "<li>Iterations: ", iter, "</ul>")
+          comment(input_fcs_data$sel_data$tSNEY) <- paste0("<br/>Selected Markers:", "<ul><li>",
+                                                           paste(chosen_markers, collapse = "<li>"), "</ul>")
+          comment(input_fcs_data$sel_data$Sample) <- paste0("Data Transformed: ",
+                                                            input$transform)
+        })
+      sink.reset()
+
+    #}, message = "Running analysis ...")
 
   })
 
+  observeEvent(input$run_rpheno, {
+
+    if ( (is.null(input_fcs_data$sel_data) ) || ( nrow(input_fcs_data$sel_data) != input$downsample_to_ncells) ) {
+      input_fcs_data$ncells <- isolate(input$downsample_to_ncells)
+      input_fcs_data$sel_data <- input_fcs_data$orig_data[sample(nrow(input_fcs_data$orig_data), input_fcs_data$ncells),]
+      input_fcs_data$sel_data <- input_fcs_data$sel_data[!duplicated(input_fcs_data$sel_data[c(1:ncol(input_fcs_data$sel_data)-1)]),]
+    }
+
+    # Isolating user selected parameters into new variables
+    chosen_markers <- isolate(input$choices)
+    tmp <- input_fcs_data$sel_data[, chosen_markers]
+    perp <- isolate(input$perp)
+    eta <- isolate(input$eta)
+    theta <- isolate(input$theta)
+    dims <- isolate(input$ndims)
+    pca <- isolate(input$initpca)
+    iter <- isolate(input$iter)
+    n_threads <- as.double(isolate(input$n_threads))
+    # I don't know why I need to sink.reset() twice but this makes the logging work.
+    sink(tmpfile, type=c("output", "message"), append=FALSE)
+    future::future({
+      sink(tmpfile, type=c("output", "message"), append=FALSE)
+      Rphenograph::Rphenograph(tmp)
+    }) %...>%
+      (function(rp) {
+        # Add tSNE results to dataframe
+        input_fcs_data$sel_data$Cluster <- factor(igraph::membership(rp[[2]]))
+
+      })
+    sink.reset()
+  })
   # Printing analysis information that is saved to the data. Useful for keeping track of analysis parameters
   # after saving
   output$analysis_params <- renderUI({
@@ -219,7 +261,7 @@ function(input, output, session) {
   output$overlay <- renderUI({
     if (is.null(input_fcs_data$markers)) return ()
     selectInput(inputId="marker_overlay", "Color",
-                choices=c(input_fcs_data$markers[!input_fcs_data$markers%in%c("tSNEX", "tSNEY")], "Density"),
+                choices=c(input_fcs_data$markers[!input_fcs_data$markers%in%c("tSNEX", "tSNEY")], "Density", "Cluster"),
                 selected="Sample")
   })
   outputOptions(output, "overlay", suspendWhenHidden = FALSE)

@@ -1,4 +1,5 @@
 ## FCS Loading
+`%>%` <- dplyr::`%>%`
 loadFCS <- function(fcsFiles, doTransform) {
   fcs_dataframes <- c()
   withProgress(message="Reading FCS files...", value=0, min=0, max=length(fcsFiles[,1]), {
@@ -72,6 +73,28 @@ create_plot <- function(dataToPlot, marker="Sample", dotsize, dotalpha, sampleCo
       ggplot2::ggtitle("Sample") +
       ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size=3), nrow = 1))
 
+  } else   if (marker == "Cluster") {
+    km <- paste0("Clusterer:", data$Cluster)
+    centroids <- data.frame(Clusterer=levels(data$Cluster))
+    centroids$Label <- paste0("Cluster:", centroids$Cluster)
+    for (x in levels(centroids$Cluster)) {
+      centroids[x, "tSNEX"] <- mean(data[which(data$Cluster==x), "tSNEX"])
+      centroids[x, "tSNEY"] <- mean(data[which(data$Cluster==x), "tSNEY"])
+    }
+
+    fcs2 <- data %>%
+      dplyr::group_by(Cluster) %>%
+      dplyr::summarise(n = n()) %>%
+      dplyr::arrange(desc(n))
+
+    data <- data[order(factor(data$Cluster, levels =factor(fcs2$Cluster))),]
+    mycolors = colorRampPalette(RColorBrewer::brewer.pal(name="Set3", n = 9))(length(levels(data$Cluster)))
+    plot <- plot + ggplot2::scale_color_manual(values = mycolors) +
+      ggplot2::geom_point(ggplot2::aes(color=data[,marker]), size=dotsize, alpha=dotalpha) +
+      ggplot2::labs(x="bh-SNE1", y="bh-SNE2", color="") +
+      ggplot2::ggtitle("Cluster") +
+      ggplot2::geom_text(data = centroids, ggplot2::aes(x = tSNEX, y = tSNEY, label = Label), color = "black", size=5) +
+      ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size=5, alpha=1), nrow = 2))
   } else if(marker == "Density") {
     df <- data
     x <- densCols(df$tSNEX,df$tSNEY, colramp=colorRampPalette(c("black", "white")))
@@ -95,7 +118,7 @@ create_plot <- function(dataToPlot, marker="Sample", dotsize, dotalpha, sampleCo
                                      breaks=c(min(normData(data[, marker])),
                                               median(normData(data[, marker])),
                                               max(normData(data[, marker]))),
-                                     labels = c("Low", "", "High")) +
+                                     labels = c("Low", " ", "High")) +
       ggplot2::labs(x="bh-SNE1", y="bh-SNE2", color="") +
       ggplot2::ggtitle(marker) +
       ggplot2::guides(colour = ggplot2::guide_colourbar(title = ggplot2::waiver(), barwidth = 25))
@@ -125,4 +148,9 @@ normData <- function(x){
   x[ x < quantiles[1] ] <- quantiles[1]
   x[ x > quantiles[2] ] <- quantiles[2]
   x
+}
+sink.reset <- function(){
+  for(i in seq_len(sink.number())){
+    sink(NULL)
+  }
 }
