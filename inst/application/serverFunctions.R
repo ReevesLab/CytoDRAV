@@ -12,11 +12,11 @@ loadFCS <- function(fcsFiles, doTransform) {
         m = 4.5
         t = 262144
         w = 1.5
-        lgcl <- flowCore::logicleTransform( w = w, t= t, m = m)
-        single_fcs_transformed <- flowCore::transform(single_fcs_raw,
-                                                      flowCore::transformList(paste(single_fcs_raw@parameters@data$name), lgcl))
-
-        single_fcs_df <- data.frame(single_fcs_transformed@exprs)
+        #lgcl <- flowCore::logicleTransform( w = w, t= t, m = m)
+        #single_fcs_transformed <- flowCore::transform(single_fcs_raw,
+                                                      #flowCore::transformList(paste(single_fcs_raw@parameters@data$name), lgcl))
+        single_fcs_transformed <- single_fcs_raw
+        single_fcs_df <- data.frame(asinh(single_fcs_transformed@exprs/150))
       } else {
         single_fcs_df <- data.frame(single_fcs_raw@exprs)
       }
@@ -61,17 +61,23 @@ loadFCS <- function(fcsFiles, doTransform) {
 }
 
 ## PLOTTING FUNCTIONS
-create_plot <- function(dataToPlot, marker="Sample", dotsize, dotalpha, sampleColor="black", show_legend,show_axis_labels, show_title) {
+create_plot <- function(dataToPlot, marker="Sample", dotsize, dotalpha, sampleColor="black", cofactor=150, show_legend,show_axis_labels, show_title, show_cluster) {
   data <- as.data.frame(dataToPlot)
+  data <- data[sample(1:nrow(data)),]
   plot <- ggplot2::ggplot(data) + ggplot2::aes(x=data[,"tSNEX"], y=data[,"tSNEY"])
 
   if (marker == "Sample") {
+    fcs2 <- data %>%
+      dplyr::group_by(Sample) %>%
+      dplyr::summarise(n = dplyr::n()) %>%
+      dplyr::arrange(desc(n))
 
+    #data <- data[order(factor(data$Sample, levels =factor(fcs2$Sample))),]
     plot <- plot + ggplot2::scale_colour_manual(values=sampleColor) +
       ggplot2::geom_point(ggplot2::aes(color=data[,marker]), size=dotsize, alpha=dotalpha) +
       ggplot2::labs(x="bh-SNE1", y="bh-SNE2", color="") +
       ggplot2::ggtitle("Sample") +
-      ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size=3), nrow = 1))
+      ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size=3), nrow = 2))
 
   } else   if (marker == "Cluster") {
     km <- paste0("Clusterer:", data$Cluster)
@@ -84,7 +90,7 @@ create_plot <- function(dataToPlot, marker="Sample", dotsize, dotalpha, sampleCo
 
     fcs2 <- data %>%
       dplyr::group_by(Cluster) %>%
-      dplyr::summarise(n = n()) %>%
+      dplyr::summarise(n = dplyr::n()) %>%
       dplyr::arrange(desc(n))
 
     data <- data[order(factor(data$Cluster, levels =factor(fcs2$Cluster))),]
@@ -93,8 +99,8 @@ create_plot <- function(dataToPlot, marker="Sample", dotsize, dotalpha, sampleCo
       ggplot2::geom_point(ggplot2::aes(color=data[,marker]), size=dotsize, alpha=dotalpha) +
       ggplot2::labs(x="bh-SNE1", y="bh-SNE2", color="") +
       ggplot2::ggtitle("Cluster") +
-      ggplot2::geom_text(data = centroids, ggplot2::aes(x = tSNEX, y = tSNEY, label = Label), color = "black", size=5) +
       ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size=5, alpha=1), nrow = 2))
+    if (isTRUE(show_cluster)) plot <- plot + ggplot2::geom_text(data = centroids, ggplot2::aes(x = tSNEX, y = tSNEY, label = Label), color = "black", size=5)
   } else if(marker == "Density") {
     df <- data
     x <- densCols(df$tSNEX,df$tSNEY, colramp=colorRampPalette(c("black", "white")))
@@ -113,11 +119,11 @@ create_plot <- function(dataToPlot, marker="Sample", dotsize, dotalpha, sampleCo
   } else {
 
     plot <- plot +
-      ggplot2::geom_point(ggplot2::aes(color=normData(data[, marker])), size=dotsize, alpha=dotalpha) +
+      ggplot2::geom_point(ggplot2::aes(color=normData(asinh(data[, marker]/cofactor))), size=dotsize, alpha=dotalpha) +
       ggplot2::scale_color_gradientn(colors=c("blue", "cyan", "yellow", "red" ),
-                                     breaks=c(min(normData(data[, marker])),
-                                              median(normData(data[, marker])),
-                                              max(normData(data[, marker]))),
+                                     breaks=c(min(normData(asinh(data[, marker]/cofactor))),
+                                              median(normData(asinh(data[, marker]/cofactor))),
+                                              max(normData(asinh(data[, marker]/cofactor)))),
                                      labels = c("Low", " ", "High")) +
       ggplot2::labs(x="bh-SNE1", y="bh-SNE2", color="") +
       ggplot2::ggtitle(marker) +
@@ -153,4 +159,46 @@ sink.reset <- function(){
   for(i in seq_len(sink.number())){
     sink(NULL)
   }
+}
+
+asinh_trans_prettybreaks = function(cofactor) {
+
+  ### Making pretty tick marks
+  transform =   function(x,...) {
+    asinh(x/cofactor)
+  }
+  inverse = function(x,...) {
+    sinh(x)*cofactor
+  }
+  breaks = function(x,...) {
+
+    ###Making Pretty breaks
+    ###Linear zone at the cofactor
+    linear.ticks.max.10 <- floor(log10(cofactor))-1
+    linear.ticks.max <- cofactor/(10^linear.ticks.max.10)
+    linear.ticks <- c(seq(0, linear.ticks.max, length.out = 8))*10^linear.ticks.max.10
+    #linear.ticks
+    ##Log labels above the cofactor at the decades
+    log.ticks.major <- 10^seq(linear.ticks.max.10+2,6)
+
+    #Log ticks above the cofactor
+    log.ticks.minor.0 <- rep(10^seq(linear.ticks.max.10+2, 10, 1), each = 9)
+    log.ticks.minor <- rep(1:9,length(log.ticks.minor.0)/9)*log.ticks.minor.0
+    log.ticks.minor <- log.ticks.minor[log.ticks.minor > (cofactor)]
+
+    breaks <- c(0, log.ticks.major, -log.ticks.major, cofactor, -cofactor)
+
+    labels <- c(breaks,
+                rep("", length(linear.ticks)*2),
+                rep("", length(log.ticks.minor)*2))
+    breaks <- c(breaks, linear.ticks, -linear.ticks, log.ticks.minor, -log.ticks.minor)
+    names(breaks) <- labels
+    return(breaks)
+  }
+  scales::trans_new("asinh", transform, inverse, breaks)
+}
+
+scale_vec <- function(x) {
+  y <- ( (x - min(x)) ) / ( max(x) - min(x) )
+  return(y)
 }

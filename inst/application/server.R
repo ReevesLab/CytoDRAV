@@ -1,7 +1,7 @@
 # serverFunctions.R holds the data loading and plotting functions.
 source("./serverFunctions.R")
 future::plan(future::multiprocess)
-
+options(scipen = 999999)
 
 #Default max file size is only 5MB. This ups that limit to 30MB
 options(shiny.maxRequestSize=100*1024^2)
@@ -27,7 +27,7 @@ function(input, output, session) {
     input_fcs_data$sel_data <- NULL
     fcsFileList <- input$file1
     rownames(fcsFileList) <- NULL
-    exprsData <- loadFCS(fcsFileList, input$transform)
+    exprsData <- loadFCS(fcsFileList, doTransform = FALSE)# input$transform)
     input_fcs_data$markers <- colnames(exprsData)
     return(exprsData)
   })
@@ -46,6 +46,7 @@ function(input, output, session) {
     input_fcs_data$plot_style <- NULL
     input_fcs_data$markers <- NULL
     input_fcs_data$orig_data <- load_data()
+    input_fcs_data$sel_data <- load_data()
     updateTabsetPanel(session, "apptabs",
                       selected = "paramtab")
   })
@@ -53,17 +54,18 @@ function(input, output, session) {
   # Load previous session button. Loads the previous Rdata file for plotting
   observeEvent(input$load_previous_file, {
     input_fcs_data$plot_style <- NULL
-    input_fcs_data$sel_data <- prev_data()
     input_fcs_data$orig_data <- prev_data()
+    input_fcs_data$sel_data <- prev_data()
   })
 
   # Populates the checkbox field for markers that will be included in the bh-SNE analysis
   # Stays empty until data is loaded
   output$maker_select_tsne <- renderUI({
     if (is.null(input_fcs_data$orig_data) && is.null(input_fcs_data$sel_data)) return ()
+    marks <- isolate(input_fcs_data$markers)
     checkboxGroupInput("choices", "Markers for Analysis",
-                       choices = colnames(input_fcs_data$orig_data)[!colnames(input_fcs_data$orig_data)%in%c("Sample")],
-                       selected = colnames(input_fcs_data$orig_data)[!colnames(input_fcs_data$orig_data)%in%c("Sample")])
+                       choices = marks[!marks%in%c("Sample", "tSNEX", "tSNEY", "Cluster", "SampleID")],
+                       selected = marks[!marks%in%c("Sample", "tSNEX", "tSNEY", "Cluster", "SampleID")])
     })
 
 
@@ -80,8 +82,8 @@ function(input, output, session) {
   # Generate check box group under the Export tab for markers that will be generated and downloaded in bulk
   output$exportmarkers <- renderUI({
     checkboxGroupInput("plot_export_markers", "Markers",
-                       choices=c(input_fcs_data$markers[!input_fcs_data$markers%in%c("tSNEX", "tSNEY")], "Density"),
-                       selected=c(input_fcs_data$markers[!input_fcs_data$markers%in%c("tSNEX", "tSNEY")], "Density"))
+                       choices=c(input_fcs_data$markers[!input_fcs_data$markers%in%c("tSNEX", "tSNEY")], "Density", "Cluster"),
+                       selected=c(input_fcs_data$markers[!input_fcs_data$markers%in%c("tSNEX", "tSNEY")], "Density", "Cluster"))
   })
 
   # Run bh-SNE button. Isolates user settings when button is pressed and performs bh-SNE.
@@ -92,7 +94,7 @@ function(input, output, session) {
     input_fcs_data$tSNEX <- NULL
     input_fcs_data$tSNEY <- NULL
 
-    if ( (is.null(input_fcs_data$sel_data) ) || ( nrow(input_fcs_data$sel_data) != input$downsample_to_ncells) ) {
+    if ( (is.null(input_fcs_data$orig_data) ) || ( nrow(input_fcs_data$sel_data) != input$downsample_to_ncells) ) {
       input_fcs_data$ncells <- isolate(input$downsample_to_ncells)
       input_fcs_data$sel_data <- input_fcs_data$orig_data[sample(nrow(input_fcs_data$orig_data), input_fcs_data$ncells),]
       input_fcs_data$sel_data <- input_fcs_data$sel_data[!duplicated(input_fcs_data$sel_data[c(1:ncol(input_fcs_data$sel_data)-1)]),]
@@ -100,7 +102,10 @@ function(input, output, session) {
 
     # Isolating user selected parameters into new variables
     chosen_markers <- isolate(input$choices)
-    tmp <- input_fcs_data$sel_data[, chosen_markers]
+    tmp <- data.frame(asinh(input_fcs_data$sel_data[, chosen_markers]/isolate(input$asinh_cofactor)))
+    if (input$transform) {
+      tmp <- data.frame(apply(tmp, 2, scale_vec))
+    }
     perp <- isolate(input$perp)
     eta <- isolate(input$eta)
     theta <- isolate(input$theta)
@@ -122,17 +127,17 @@ function(input, output, session) {
                      max_iter=iter,
                      check_duplicates = FALSE,
                      num_threads=n_threads)
-        #tsne <- uwot::umap(tmp,
-        #           metric = "manhattan",
-        #           verbose = TRUE,
-        #           n_threads = n_threads)
+      #  tsne <- uwot::umap(tmp,
+      #             metric = "manhattan",
+      #             verbose = TRUE,
+      #             n_threads = n_threads)
       }) %...>%
         (function(tsne) {
           # Add tSNE results to dataframe
           input_fcs_data$sel_data$tSNEX <- tsne$Y[,1]
           input_fcs_data$sel_data$tSNEY <- tsne$Y[,2]
-          #input_fcs_data$sel_data$tSNEX <- tsne[,1]
-          #input_fcs_data$sel_data$tSNEY <- tsne[,2]
+          #input_fcs_data$orig_data$tSNEX <- tsne[,1]
+          #input_fcs_data$orig_data$tSNEY <- tsne[,2]
 
           # Adds comments to dataframe with the parameters used for analysis.
           # This information is printed to the About tab
@@ -156,7 +161,7 @@ function(input, output, session) {
 
   observeEvent(input$run_rpheno, {
 
-    if ( (is.null(input_fcs_data$sel_data) ) || ( nrow(input_fcs_data$sel_data) != input$downsample_to_ncells) ) {
+    if ( (is.null(input_fcs_data$orig_data) ) || ( nrow(input_fcs_data$sel_data) != input$downsample_to_ncells) ) {
       input_fcs_data$ncells <- isolate(input$downsample_to_ncells)
       input_fcs_data$sel_data <- input_fcs_data$orig_data[sample(nrow(input_fcs_data$orig_data), input_fcs_data$ncells),]
       input_fcs_data$sel_data <- input_fcs_data$sel_data[!duplicated(input_fcs_data$sel_data[c(1:ncol(input_fcs_data$sel_data)-1)]),]
@@ -164,31 +169,38 @@ function(input, output, session) {
 
     # Isolating user selected parameters into new variables
     chosen_markers <- isolate(input$choices)
-    tmp <- input_fcs_data$sel_data[, chosen_markers]
+    tmp <- data.frame(asinh(input_fcs_data$sel_data[, chosen_markers]/isolate(input$asinh_cofactor)))
+    if (input$transform) {
+      tmp <- data.frame(apply(tmp, 2, scale_vec))
+    }
     perp <- isolate(input$perp)
     eta <- isolate(input$eta)
     theta <- isolate(input$theta)
     dims <- isolate(input$ndims)
     pca <- isolate(input$initpca)
     iter <- isolate(input$iter)
+    n_neighbors <- isolate(input$n_neighbors)
     n_threads <- as.double(isolate(input$n_threads))
     # I don't know why I need to sink.reset() twice but this makes the logging work.
     sink(tmpfile, type=c("output", "message"), append=FALSE)
     future::future({
       sink(tmpfile, type=c("output", "message"), append=FALSE)
-      Rphenograph::Rphenograph(tmp)
+      Rphenograph::Rphenograph(tmp,
+                               k = n_neighbors)
     }) %...>%
       (function(rp) {
         # Add tSNE results to dataframe
         input_fcs_data$sel_data$Cluster <- factor(igraph::membership(rp[[2]]))
 
+
       })
     sink.reset()
+    gc()
   })
   # Printing analysis information that is saved to the data. Useful for keeping track of analysis parameters
   # after saving
   output$analysis_params <- renderUI({
-    if (is.null(comment(input_fcs_data$sel_data$Sample))) return ()
+    if (is.null(comment(input_fcs_data$orig_data$Sample))) return ()
     HTML(
       paste("<h4>Analysis information:</h4><br/>",
         comment(input_fcs_data$sel_data$Sample),
@@ -227,6 +239,73 @@ function(input, output, session) {
 
   })
 
+  output$cluster_info <- renderPrint({
+    if (input_fcs_data$sel_data$Cluster != "NULL") {
+      q <- xtabs(~input_fcs_data$sel_data$Cluste+input_fcs_data$sel_data$Sample, data = input_fcs_data$sel_data)
+      names(dimnames(q)) <- c("Cluster", "Sample")
+      q <- round((q / rowSums(q)), digits = 2)
+      paste("Cluster proportions by input data file")
+      #qcl()
+      q
+    } else {
+      return ()
+    }
+
+  })
+  # Populate the histogram selectors
+  output$hist_selector <- renderUI({
+    fluidRow(
+      #column(2, selectInput("base_hist", "Base", choices = c("All", sort(unique(input_fcs_data$sel_data$Cluster))))),
+      column(2, shinyWidgets::pickerInput(inputId = "hist_groups", label = "Clusters to Plot",
+                                          choices = c(sort(unique(input_fcs_data$sel_data$Cluster))),
+                                          multiple = TRUE,
+                                          selected = "All")),
+      #column(2, selectInput("comp_hist", "Compare", choices = sort(unique(input_fcs_data$sel_data$Cluster)))),
+      #column(2, selectInput("hist_marker", "Marker", choices = input_fcs_data$markers)),
+      column(2, fluidRow(downloadButton("save_hist", "Save Histograms"), actionButton("plot_hist", "Plot Histogram")))
+    )
+  })
+
+  # Plot Histogram button.
+  observeEvent(input$plot_hist, {
+    gen_hist()
+    input_fcs_data$hist_style <- "HIST"
+  })
+
+  gen_hist <- reactive({
+    data <- input_fcs_data$sel_data
+    comp <- data[data$Cluster%in%input$hist_groups,]
+    data <- data[!data$Cluster%in%input$hist_groups,]
+    comp$Cluster <- paste0("Cluster: ", comp$Cluster)
+
+    plot_markers <- input_fcs_data$markers[!input_fcs_data$markers%in%c("tSNEX", "tSNEY", "Sample", "Cluster",
+                                                                        "Density", "Live_Dead", "SampleID",
+                                                                        "L_D", "AQUA AMINE", "OC")]
+    labs <- names(asinh_trans_prettybreaks(input$asinh_cofactor)$breaks())
+    labs <- gsub("\\<1000\\>", bquote('10^3'), labs)
+    labs <- gsub("\\<10000\\>", bquote('10^4'), labs)
+    labs <- gsub("\\<100000\\>", bquote('10^5'), labs)
+    labs <- gsub("\\<1000000\\>", bquote('10^6'), labs)
+    #mycolors = colorRampPalette(RColorBrewer::brewer.pal(name="Set3", n = 9))(length(levels(data$Cluster)))
+    #names(mycolors) <- sort(unique(data$Cluster))
+    plot_data_column <- function(column) {
+      ggplot2::ggplot() +
+        ggplot2::geom_density(data = data, ggplot2::aes(x = data[, column], fill = "All Clusters"), alpha = 0.3) +
+        ggplot2::geom_density(data = comp, ggplot2::aes(x = comp[, column], color = comp[, "Cluster"])) +
+        ggplot2::scale_fill_manual(name = "", values = "grey") +
+        #ggplot2::scale_color_manual(name = "Cluster", values = mycolors) +
+        ggplot2::labs(color="Cluster", x = column) +
+        ggplot2::scale_x_continuous(trans = asinh_trans_prettybreaks(input$asinh_cofactor), limits = c(-10**4, 262144),
+                                    labels = c(parse(text = labs), rep("", abs(length(parse(text = labs))-length(labs))))) +
+        ggplot2::theme(panel.grid.major = ggplot2::element_blank(),
+                       panel.grid.minor = ggplot2::element_blank()) +
+        ggplot2::guides(fill = FALSE)
+
+    }
+    myplots <- lapply(plot_markers, plot_data_column)
+    input_fcs_data$plots <- myplots
+  })
+
   # Checks the tmpfile every 50 ms for changes
   log <- reactiveFileReader(50, session=session, tmpfile, read.delim, sep="\n")
 
@@ -244,6 +323,16 @@ function(input, output, session) {
     filename = function() {paste0(input$marker_overlay, ".pdf", input$format)},
     content = function(file) {
       ggplot2::ggsave(file, plot=input_fcs_data$plot, device = "pdf", dpi=300, width=11, height=8.5, units="in")
+
+    }
+  )
+
+  # Save histogram button
+  # Saves the currently displayed histogram to PDF file
+  output$save_hist = downloadHandler(
+    filename = function() {paste0("Cluster ", input$base_hist, " and Cluster ", input$comp_hist, ".pdf")},
+    content = function(file) {
+      ggplot2::ggsave(file, plot=input_fcs_data$hist_plotted, device = "pdf", dpi=300, height=22, width=17, unit="in")
 
     }
   )
@@ -272,10 +361,21 @@ function(input, output, session) {
     if(input_fcs_data$plot_style == "tSNE") {
       sampleColor <- setNames(unlist(select_sample_colors()), unique(input_fcs_data$orig_data$Sample))
       input_fcs_data$plot <- create_plot(input_fcs_data$sel_data, input$marker_overlay, input$size,
-                                         input$alpha, sampleColor, show_legend=input$show_legend,
-                                         show_axis_labels=input$show_axis_labels, show_title=input$show_title)
+                                         input$alpha, sampleColor, show_legend=input$show_legend, input$asinh_cofactor,
+                                         show_axis_labels=input$show_axis_labels, show_title=input$show_title, show_cluster = input$show_cluster)
       input_fcs_data$plot
     }
+  })
+
+  output$hist_plot <- renderPlot({
+    if (is.null(input_fcs_data$hist_style)) return ()
+
+    if(input_fcs_data$hist_style == "HIST") {
+      input_fcs_data$hist_plotted <- gridExtra::grid.arrange(grobs = input_fcs_data$plots , ncol = 3)
+      input_fcs_data$hist_plotted
+    }
+
+
   })
 
   # Generates plots for each marker selected under the Export tab in the chosen file format
@@ -293,13 +393,15 @@ function(input, output, session) {
 
           sampleColor <- setNames(unlist(select_sample_colors()), unique(input_fcs_data$orig_data$Sample))
           tmp_plot <- create_plot(dataToPlot=input_fcs_data$sel_data,
+                                  input$asinh_cofactor,
                                   marker=mark,
                                   dotsize=input$size,
                                   dotalpha=input$alpha,
                                   sampleColor=sampleColor,
                                   show_legend=input$show_legend,
                                   show_axis_labels=input$show_axis_labels,
-                                  show_title=input$show_title)
+                                  show_title=input$show_title,
+                                  show_cluster = input$show_cluster)
           name <- paste0(tmpdir, "/", mark, "-bhSNE.", input$exportFormat)
           ggplot2::ggsave(filename=name, plot=tmp_plot, device=input$exportFormat, height=8.5, width=11, units="in")
           incProgress(1)
@@ -318,8 +420,29 @@ function(input, output, session) {
     }
   )
 
+  qcl <- reactive({
+    q <- xtabs(~input_fcs_data$sel_data$Cluste+input_fcs_data$sel_data$Sample, data = input_fcs_data$sel_data)
+    names(dimnames(q)) <- c("Cluster", "Sample")
+    q <- round((q / rowSums(q)), digits = 2)
+    p <- as.data.frame.matrix(q)
+    p$Cluster <- row.names(p)
+    cols <- colnames(p)
+    cols <- cols[1: length(cols)-1]
+    p <- p[, c("Cluster", cols)]
+    return(p)
+  })
+  output$download_cluster = downloadHandler(
+    filename = function() {paste("Clusters.txt")},
+    content = function(file) {
+
+
+      write.table(qcl(), file, sep = "\t", row.names = FALSE)
+    }
+  )
+
   # Stops R session when window closes
   session$onSessionEnded(function() {
     stopApp()
   })
 }
+

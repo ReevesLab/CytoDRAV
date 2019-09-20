@@ -9,7 +9,7 @@ fluidPage(
   sidebarLayout(
     sidebarPanel(
       fileInput("file1", "Choose FCS File", multiple=TRUE, accept=c("text/fcs", ".fcs")),
-      checkboxInput("transform", "Transform Data", value=FALSE),
+      checkboxInput("transform", "Scale Data", value=FALSE),
       div(style="margin-top:-1em", actionButton("load_fcs_files", "Load FCS")),
       hr(),
       fileInput("filep", "Choose Previous Session", multiple=FALSE, accept=c("text/rda", ".rda")),
@@ -50,6 +50,8 @@ fluidPage(
                                            value=TRUE),
                              checkboxInput("show_title", "Title",
                                            value=TRUE),
+                             checkboxInput("show_cluster", "Cluster Label",
+                                           value = TRUE),
                              downloadButton("export", "Save plot"),
                              downloadButton("saveRDF", "Save data")),
                              column(width=6,
@@ -61,7 +63,12 @@ fluidPage(
                              tooltip = shinyWidgets::tooltipOptions(title = "Plot Settings and Download")),
                           plotOutput("plot", width="100%", height=750)
                           ),
-
+                  tabPanel(title="Histograms", value = "histotab",
+                           uiOutput("hist_selector"),
+                           plotOutput("hist_plot", width="100%", height=1000)),
+                  tabPanel(title="Cluster Info", value="clustinfo",
+                           downloadButton("download_cluster", "Download Cluster Info"),
+                           verbatimTextOutput("cluster_info")),
                   tabPanel(title="Parameters", value = "paramtab",
                            fluidRow(
                            column(2,
@@ -76,6 +83,8 @@ fluidPage(
                                   numericInput("theta", "Theta", min=0.5, value=0.5),
                                   numericInput("eta", "Learning rate", min=50, value=200),
                                   numericInput("iter", "Iterations", min = 500, max = 5000, value = 1000),
+                                  numericInput("n_neighbors", "PhenoGraph # Neighbors", min = 15, value = 200),
+                                  numericInput("asinh_cofactor", "Asinh Transformation Cofactor", value = 150),
                                   selectInput("n_threads", "Number of Threads",
                                               choices = seq(1:(unname(future::availableCores())-1)),
                                               selected = 1)
