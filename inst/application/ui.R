@@ -18,7 +18,8 @@ fluidPage(
       fluidRow(
         actionButton("run_tsne", "Run bh-SNE"),
         actionButton("plot_tsne", "Plot bh-SNE"),
-        actionButton("run_rpheno", "Run Phenograph")
+        actionButton("run_rpheno", "Run Phenograph")#,
+        #actionButton("run_hdbscan", "Run HDBSCAN")
       ),
       div(id="outDiv", verbatimTextOutput("consoletext")),
       tags$head(tags$style("#outDiv{overflow-y:scroll; max-height: 100px;}")),
@@ -39,28 +40,37 @@ fluidPage(
       tabsetPanel(id="apptabs",
 
                   tabPanel(title="Main", value = "maintab",
-                           shinyWidgets::dropdownButton(
-                             fluidRow(
-                             column(width=6,
-                             sliderInput(inputId="size", "Dot Size", min=0.1, max=5, value=1),
-                             sliderInput(inputId="alpha", "Dot alpha", min=0.1, max=1, value=1),
-                             checkboxInput("show_legend", "Legend",
-                                           value=TRUE),
-                             checkboxInput("show_axis_labels", "Axis Labels",
-                                           value=TRUE),
-                             checkboxInput("show_title", "Title",
-                                           value=TRUE),
-                             checkboxInput("show_cluster", "Cluster Label",
-                                           value = TRUE),
-                             downloadButton("export", "Save plot"),
-                             downloadButton("saveRDF", "Save data")),
-                             column(width=6,
-                                    uiOutput("overlay"),
-                                    uiOutput("color_selector"))),
-                             circle = FALSE, status = "danger",
-                             icon = icon("sliders-h"), width = "300px",
+                           #fluidRow(
+                             shinyWidgets::dropdownButton(
+                               fluidRow(
+                               column(width=6,
+                               sliderInput(inputId="size", "Dot Size", min=0.1, max=5, value=1),
+                               sliderInput(inputId="alpha", "Dot alpha", min=0.1, max=1, value=1),
+                               checkboxInput("show_legend", "Legend",
+                                             value=TRUE),
+                               checkboxInput("show_axis_labels", "Axis Labels",
+                                             value=TRUE),
+                               checkboxInput("show_title", "Title",
+                                             value=TRUE),
+                               checkboxInput("show_cluster", "Cluster Label",
+                                             value = TRUE),
+                               numericInput("axis_width", "Axis width", min=0.1, value = 2),
+                               numericInput("tick_font", "Tick Size", min=0.1, value = 20),
+                               downloadButton("export", "Save plot"),
+                               downloadButton("saveRDF", "Save data")),
+                               column(width=6,
+                                      uiOutput("overlay"),
+                                      uiOutput("color_selector"))
+                               ),
+                               circle = FALSE, status = "danger",
+                               icon = icon("sliders-h"), width = "300px",
 
-                             tooltip = shinyWidgets::tooltipOptions(title = "Plot Settings and Download")),
+                               tooltip = shinyWidgets::tooltipOptions(title = "Plot Settings and Download")),
+                             shinyWidgets::dropdownButton(
+                               uiOutput("samples_to_plot"),
+                               circle = FALSE, status = "danger",
+                               icon = icon("sliders-h"), width = "300px"
+                             ),
                           plotOutput("plot", width="100%", height=750)
                           ),
                   tabPanel(title="Histograms", value = "histotab",
@@ -78,13 +88,13 @@ fluidPage(
                            column(2,
                                   h4("bh-SNE Parameters"),
                                   checkboxInput("initpca", "Initial PCA Step", TRUE),
-                                  numericInput("perp", "Perplexity", min=0, value=20),
+                                  numericInput("perp", "Perplexity", min=0, value=35),
                                   numericInput("ndims", "Output dimensions", min=2, value=2),
                                   numericInput("theta", "Theta", min=0.5, value=0.5),
                                   numericInput("eta", "Learning rate", min=50, value=200),
                                   numericInput("iter", "Iterations", min = 500, max = 5000, value = 1000),
-                                  numericInput("n_neighbors", "PhenoGraph # Neighbors", min = 15, value = 200),
-                                  numericInput("asinh_cofactor", "Asinh Transformation Cofactor", value = 150),
+                                  numericInput("n_neighbors", "PhenoGraph # Neighbors", min = 15, value = 30),
+                                  numericInput("asinh_cofactor", "Asinh Transformation Cofactor", value = 1000),
                                   selectInput("n_threads", "Number of Threads",
                                               choices = seq(1:(unname(future::availableCores())-1)),
                                               selected = 1)

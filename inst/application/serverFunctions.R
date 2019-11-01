@@ -61,7 +61,7 @@ loadFCS <- function(fcsFiles, doTransform) {
 }
 
 ## PLOTTING FUNCTIONS
-create_plot <- function(dataToPlot, marker="Sample", dotsize, dotalpha, sampleColor="black", cofactor=150, show_legend,show_axis_labels, show_title, show_cluster) {
+create_plot <- function(dataToPlot, marker="Sample", dotsize, dotalpha, sampleColor="black", cofactor=150, show_legend,show_axis_labels, show_title, show_cluster, font_size, axis_width, mycolors=NULL) {
   data <- as.data.frame(dataToPlot)
   data <- data[sample(1:nrow(data)),]
   plot <- ggplot2::ggplot(data) + ggplot2::aes(x=data[,"tSNEX"], y=data[,"tSNEY"])
@@ -79,10 +79,10 @@ create_plot <- function(dataToPlot, marker="Sample", dotsize, dotalpha, sampleCo
       ggplot2::ggtitle("Sample") +
       ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size=3), nrow = 2))
 
-  } else   if (marker == "Cluster") {
+  } else   if (marker == "Cluster" || marker == "HDB") {
     km <- paste0("Clusterer:", data$Cluster)
     centroids <- data.frame(Clusterer=levels(data$Cluster))
-    centroids$Label <- paste0("Cluster:", centroids$Cluster)
+    centroids$Label <- centroids$Cluster
     for (x in levels(centroids$Cluster)) {
       centroids[x, "tSNEX"] <- mean(data[which(data$Cluster==x), "tSNEX"])
       centroids[x, "tSNEY"] <- mean(data[which(data$Cluster==x), "tSNEY"])
@@ -94,7 +94,7 @@ create_plot <- function(dataToPlot, marker="Sample", dotsize, dotalpha, sampleCo
       dplyr::arrange(desc(n))
 
     data <- data[order(factor(data$Cluster, levels =factor(fcs2$Cluster))),]
-    mycolors = colorRampPalette(RColorBrewer::brewer.pal(name="Set3", n = 9))(length(levels(data$Cluster)))
+    #mycolors = colorRampPalette(RColorBrewer::brewer.pal(name="Set3", n = 9))(length(levels(data$Cluster)))
     plot <- plot + ggplot2::scale_color_manual(values = mycolors) +
       ggplot2::geom_point(ggplot2::aes(color=data[,marker]), size=dotsize, alpha=dotalpha) +
       ggplot2::labs(x="bh-SNE1", y="bh-SNE2", color="") +
@@ -137,11 +137,12 @@ create_plot <- function(dataToPlot, marker="Sample", dotsize, dotalpha, sampleCo
                    legend.text = ggplot2::element_text(size=12, face="bold"),
                    legend.title = ggplot2::element_text(size=16, face="bold"),
                    panel.background = ggplot2::element_blank(),
-                   axis.line = ggplot2::element_line(colour = "black"),
+                   axis.line = ggplot2::element_line(colour = "black", size = axis_width),
                    axis.title = ggplot2::element_text(size=18, face="bold"),
                    plot.title = ggplot2::element_text(size=18, face = "bold"),
                    legend.position = "bottom",
-                   legend.direction = "horizontal")
+                   legend.direction = "horizontal",
+                   axis.text = ggplot2::element_text(size = font_size, face = "bold"))
   if (!show_legend) plot <- plot + ggplot2::theme(legend.position="none")
   if (!show_title) plot <- plot + ggplot2::theme(plot.title = ggplot2::element_blank())
   if (!show_axis_labels) plot <- plot + ggplot2::theme(axis.title = ggplot2::element_blank())

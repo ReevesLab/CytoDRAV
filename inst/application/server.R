@@ -19,7 +19,7 @@ tmpdir <- tempdir()
 function(input, output, session) {
 
   # ReactiveValues object to hold the input FCS data and other aspects for analysis and plotting
-  input_fcs_data <- shiny::reactiveValues(orig_data=NULL, markers=NULL, plot_style=NULL, sel_data=NULL)
+  input_fcs_data <- shiny::reactiveValues(orig_data=NULL, markers=NULL, plot_style=NULL, sel_data=NULL, mycolors=NULL)
 
   # Reactive function to load data. When called it resets the ReactiveValues object above
   load_data <- reactive({
@@ -37,6 +37,7 @@ function(input, output, session) {
     withProgress(message="Loading previous data", {
     d <- readRDS(input$filep$datapath)
     input_fcs_data$markers <- colnames(d)
+
     return(d)
     })
   })
@@ -56,6 +57,9 @@ function(input, output, session) {
     input_fcs_data$plot_style <- NULL
     input_fcs_data$orig_data <- prev_data()
     input_fcs_data$sel_data <- prev_data()
+    mycolors = colorRampPalette(RColorBrewer::brewer.pal(name="Set3", n = 9))(length(levels(input_fcs_data$sel_data$Cluster)))
+    names(mycolors) <- levels(input_fcs_data$sel_data$Cluster)
+    input_fcs_data$mycolors <- mycolors
   })
 
   # Populates the checkbox field for markers that will be included in the bh-SNE analysis
@@ -127,8 +131,7 @@ function(input, output, session) {
                      max_iter=iter,
                      check_duplicates = FALSE,
                      num_threads=n_threads)
-      #  tsne <- uwot::umap(tmp,
-      #             metric = "manhattan",
+      #tsne <- uwot::umap(tmp,
       #             verbose = TRUE,
       #             n_threads = n_threads)
       }) %...>%
@@ -136,8 +139,8 @@ function(input, output, session) {
           # Add tSNE results to dataframe
           input_fcs_data$sel_data$tSNEX <- tsne$Y[,1]
           input_fcs_data$sel_data$tSNEY <- tsne$Y[,2]
-          #input_fcs_data$orig_data$tSNEX <- tsne[,1]
-          #input_fcs_data$orig_data$tSNEY <- tsne[,2]
+      #    input_fcs_data$sel_data$tSNEX <- tsne[,1]
+      #    input_fcs_data$sel_data$tSNEY <- tsne[,2]
 
           # Adds comments to dataframe with the parameters used for analysis.
           # This information is printed to the About tab
@@ -147,7 +150,7 @@ function(input, output, session) {
                                                            "<li>Theta: ", theta,
                                                            "<li>Learning Rate: ", eta,
                                                            "<li>PCA performed: ", pca,
-                                                           "<li>Iterations: ", iter, "</ul>")
+                                                          "<li>Iterations: ", iter, "</ul>")
           comment(input_fcs_data$sel_data$tSNEY) <- paste0("<br/>Selected Markers:", "<ul><li>",
                                                            paste(chosen_markers, collapse = "<li>"), "</ul>")
           comment(input_fcs_data$sel_data$Sample) <- paste0("Data Transformed: ",
@@ -156,6 +159,27 @@ function(input, output, session) {
       sink.reset()
 
     #}, message = "Running analysis ...")
+
+  })
+
+  observeEvent(input$run_hdbscan, {
+
+    withProgress({
+      incProgress(1/4, detail = "Selecting data")
+      chosen_markers <- isolate(input$choices)
+      tmp <- input_fcs_data$sel_data[, c("tSNEX", "tSNEY")]
+      n_events <- floor(nrow(tmp)*0.01)
+
+      incProgress(1/4, detail = "Importing HDBSCAN in Python")
+      hdb <- reticulate::import("hdbscan")
+
+      incProgress(1/4, detail = "Clustering Data")
+      clustering <- hdb$HDBSCAN()
+      test <- clustering$fit(tmp)
+
+      incProgress(1/4, detail = "Appending Cluster Labels to Data")
+      input_fcs_data$sel_data$HDB <- paste0("Cluster:", test$labels_)
+    })
 
   })
 
@@ -169,6 +193,7 @@ function(input, output, session) {
 
     # Isolating user selected parameters into new variables
     chosen_markers <- isolate(input$choices)
+    #tmp <- data.frame(asinh(input_fcs_data$sel_data[, chosen_markers]/isolate(input$asinh_cofactor)))
     tmp <- data.frame(asinh(input_fcs_data$sel_data[, chosen_markers]/isolate(input$asinh_cofactor)))
     if (input$transform) {
       tmp <- data.frame(apply(tmp, 2, scale_vec))
@@ -191,6 +216,9 @@ function(input, output, session) {
       (function(rp) {
         # Add tSNE results to dataframe
         input_fcs_data$sel_data$Cluster <- factor(igraph::membership(rp[[2]]))
+        mycolors = colorRampPalette(RColorBrewer::brewer.pal(name="Set3", n = 9))(length(levels(input_fcs_data$sel_data$Cluster)))
+        names(mycolors) <- levels(input_fcs_data$sel_data$Cluster)
+        input_fcs_data$mycolors <- mycolors
 
 
       })
@@ -219,6 +247,12 @@ function(input, output, session) {
     })
   })
 
+  samples_select <- reactive({
+    checkboxGroupInput("plotting_samples", "Samples to Plot", choices = unique(input_fcs_data$sel_data$Sample), selected = unique(input_fcs_data$sel_data$Sample))
+  })
+
+  output$samples_to_plot <- renderUI({samples_select()})
+  outputOptions(output, "samples_to_plot", suspendWhenHidden = FALSE)
   # Populate the color selectors for samples
   output$color_selector <- renderUI({sample_colors()})
   outputOptions(output, "color_selector", suspendWhenHidden = FALSE)
@@ -241,7 +275,7 @@ function(input, output, session) {
 
   output$cluster_info <- renderPrint({
     if (input_fcs_data$sel_data$Cluster != "NULL") {
-      q <- xtabs(~input_fcs_data$sel_data$Cluste+input_fcs_data$sel_data$Sample, data = input_fcs_data$sel_data)
+      q <- xtabs(~input_fcs_data$sel_data$Cluster+input_fcs_data$sel_data$Sample, data = input_fcs_data$sel_data)
       names(dimnames(q)) <- c("Cluster", "Sample")
       q <- round((q / rowSums(q)), digits = 2)
       paste("Cluster proportions by input data file")
@@ -275,8 +309,8 @@ function(input, output, session) {
   gen_hist <- reactive({
     data <- input_fcs_data$sel_data
     comp <- data[data$Cluster%in%input$hist_groups,]
-    data <- data[!data$Cluster%in%input$hist_groups,]
-    comp$Cluster <- paste0("Cluster: ", comp$Cluster)
+    #data <- data[!data$Cluster%in%input$hist_groups,]
+    #comp$Cluster <- paste0("Cluster: ", comp$Cluster)
 
     plot_markers <- input_fcs_data$markers[!input_fcs_data$markers%in%c("tSNEX", "tSNEY", "Sample", "Cluster",
                                                                         "Density", "Live_Dead", "SampleID",
@@ -290,16 +324,17 @@ function(input, output, session) {
     #names(mycolors) <- sort(unique(data$Cluster))
     plot_data_column <- function(column) {
       ggplot2::ggplot() +
-        ggplot2::geom_density(data = data, ggplot2::aes(x = data[, column], fill = "All Clusters"), alpha = 0.3) +
-        ggplot2::geom_density(data = comp, ggplot2::aes(x = comp[, column], color = comp[, "Cluster"])) +
+        ggplot2::geom_density(data = data, ggplot2::aes(x = data[, column], fill = "All Clusters", ..scaled..), alpha = 0.3) +
+        ggplot2::geom_density(data = comp, ggplot2::aes(x = comp[, column], color = comp[, "Cluster"], ..scaled..)) +
         ggplot2::scale_fill_manual(name = "", values = "grey") +
-        #ggplot2::scale_color_manual(name = "Cluster", values = mycolors) +
+        ggplot2::scale_color_manual(name = "Cluster", values = input_fcs_data$mycolors) +
         ggplot2::labs(color="Cluster", x = column) +
-        ggplot2::scale_x_continuous(trans = asinh_trans_prettybreaks(input$asinh_cofactor), limits = c(-10**4, 262144),
+        ggplot2::scale_x_continuous(trans = asinh_trans_prettybreaks(input$asinh_cofactor), limits = c(-10**3.5, 262144),
                                     labels = c(parse(text = labs), rep("", abs(length(parse(text = labs))-length(labs))))) +
         ggplot2::theme(panel.grid.major = ggplot2::element_blank(),
                        panel.grid.minor = ggplot2::element_blank()) +
-        ggplot2::guides(fill = FALSE)
+        ggplot2::guides(fill = FALSE) +
+        ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size=3)))
 
     }
     myplots <- lapply(plot_markers, plot_data_column)
@@ -350,7 +385,7 @@ function(input, output, session) {
   output$overlay <- renderUI({
     if (is.null(input_fcs_data$markers)) return ()
     selectInput(inputId="marker_overlay", "Color",
-                choices=c(input_fcs_data$markers[!input_fcs_data$markers%in%c("tSNEX", "tSNEY")], "Density", "Cluster"),
+                choices=c(input_fcs_data$markers[!input_fcs_data$markers%in%c("tSNEX", "tSNEY")], "Density", "Cluster", "HDB"),
                 selected="Sample")
   })
   outputOptions(output, "overlay", suspendWhenHidden = FALSE)
@@ -360,9 +395,11 @@ function(input, output, session) {
     if (is.null(input_fcs_data$plot_style)) return ()
     if(input_fcs_data$plot_style == "tSNE") {
       sampleColor <- setNames(unlist(select_sample_colors()), unique(input_fcs_data$orig_data$Sample))
-      input_fcs_data$plot <- create_plot(input_fcs_data$sel_data, input$marker_overlay, input$size,
+      input_fcs_data$plot <- create_plot(input_fcs_data$sel_data[input_fcs_data$sel_data$Sample%in%input$plotting_samples,], input$marker_overlay, input$size,
                                          input$alpha, sampleColor, show_legend=input$show_legend, input$asinh_cofactor,
-                                         show_axis_labels=input$show_axis_labels, show_title=input$show_title, show_cluster = input$show_cluster)
+                                         show_axis_labels=input$show_axis_labels, show_title=input$show_title,
+                                         show_cluster = input$show_cluster, font_size = input$tick_font,
+                                         axis_width = input$axis_width, mycolors = input_fcs_data$mycolors)
       input_fcs_data$plot
     }
   })
@@ -392,7 +429,7 @@ function(input, output, session) {
         for (mark in input$plot_export_markers) {
 
           sampleColor <- setNames(unlist(select_sample_colors()), unique(input_fcs_data$orig_data$Sample))
-          tmp_plot <- create_plot(dataToPlot=input_fcs_data$sel_data,
+          tmp_plot <- create_plot(dataToPlot=input_fcs_data$sel_data[input_fcs_data$sel_data$Sample%in%input$plotting_samples,],
                                   input$asinh_cofactor,
                                   marker=mark,
                                   dotsize=input$size,
@@ -401,7 +438,8 @@ function(input, output, session) {
                                   show_legend=input$show_legend,
                                   show_axis_labels=input$show_axis_labels,
                                   show_title=input$show_title,
-                                  show_cluster = input$show_cluster)
+                                  show_cluster = input$show_cluster, font_size = input$tick_font, axis_width = input$axis_width,
+                                  mycolors = input_fcs_data$mycolors)
           name <- paste0(tmpdir, "/", mark, "-bhSNE.", input$exportFormat)
           ggplot2::ggsave(filename=name, plot=tmp_plot, device=input$exportFormat, height=8.5, width=11, units="in")
           incProgress(1)
