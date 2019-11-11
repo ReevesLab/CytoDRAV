@@ -43,24 +43,25 @@ fluidPage(
                            #fluidRow(
                              shinyWidgets::dropdownButton(
                                fluidRow(
-                               column(width=6,
-                               sliderInput(inputId="size", "Dot Size", min=0.1, max=5, value=1),
-                               sliderInput(inputId="alpha", "Dot alpha", min=0.1, max=1, value=1),
-                               checkboxInput("show_legend", "Legend",
-                                             value=TRUE),
-                               checkboxInput("show_axis_labels", "Axis Labels",
-                                             value=TRUE),
-                               checkboxInput("show_title", "Title",
-                                             value=TRUE),
-                               checkboxInput("show_cluster", "Cluster Label",
-                                             value = TRUE),
-                               numericInput("axis_width", "Axis width", min=0.1, value = 2),
-                               numericInput("tick_font", "Tick Size", min=0.1, value = 20),
-                               downloadButton("export", "Save plot"),
-                               downloadButton("saveRDF", "Save data")),
-                               column(width=6,
-                                      uiOutput("overlay"),
-                                      uiOutput("color_selector"))
+                                 column(width=6,
+                                 sliderInput(inputId="size", "Dot Size", min=0.1, max=5, value=1),
+                                 sliderInput(inputId="alpha", "Dot alpha", min=0.1, max=1, value=1),
+                                 checkboxInput("show_legend", "Legend",
+                                               value=TRUE),
+                                 checkboxInput("show_axis_labels", "Axis Labels",
+                                               value=TRUE),
+                                 checkboxInput("show_title", "Title",
+                                               value=TRUE),
+                                 checkboxInput("show_cluster", "Cluster Label",
+                                               value = TRUE),
+                                 numericInput("axis_width", "Axis width", min=0.1, value = 2),
+                                 numericInput("tick_font", "Tick Size", min=0.1, value = 20),
+                                 #selectInput("legend.dir", "Legend Position", choices=c("vertical", "horizontal"), selected="horizontal"),
+                                 downloadButton("export", "Save plot"),
+                                 downloadButton("saveRDF", "Save data")),
+                                 column(width=6,
+                                        uiOutput("overlay"),
+                                        uiOutput("color_selector"))
                                ),
                                circle = FALSE, status = "danger",
                                icon = icon("sliders-h"), width = "300px",
@@ -74,6 +75,18 @@ fluidPage(
                           plotOutput("plot", width="100%", height=750)
                           ),
                   tabPanel(title="Histograms", value = "histotab",
+                           shinyWidgets::dropdownButton(
+                             fluidRow(
+                               column(width=6,
+                                      uiOutput("hists_to_plot")
+
+                             ),
+                             column(width=6,
+                                    numericInput("hist_thick", "Histogram Line Thickness", value = 1))
+                             ),
+                             circle = FALSE, status = "danger",
+                             icon = icon("sliders-h"), width = "300px"
+                             ),
                            uiOutput("hist_selector"),
                            plotOutput("hist_plot", width="100%", height=1000)),
                   tabPanel(title="Cluster Info", value="clustinfo",

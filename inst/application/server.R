@@ -106,7 +106,8 @@ function(input, output, session) {
 
     # Isolating user selected parameters into new variables
     chosen_markers <- isolate(input$choices)
-    tmp <- data.frame(asinh(input_fcs_data$sel_data[, chosen_markers]/isolate(input$asinh_cofactor)))
+    #tmp <- data.frame(asinh(input_fcs_data$sel_data[, chosen_markers]/isolate(input$asinh_cofactor)))
+    tmp <- data.frame(input_fcs_data$sel_data[, chosen_markers])
     if (input$transform) {
       tmp <- data.frame(apply(tmp, 2, scale_vec))
     }
@@ -194,7 +195,7 @@ function(input, output, session) {
     # Isolating user selected parameters into new variables
     chosen_markers <- isolate(input$choices)
     #tmp <- data.frame(asinh(input_fcs_data$sel_data[, chosen_markers]/isolate(input$asinh_cofactor)))
-    tmp <- data.frame(asinh(input_fcs_data$sel_data[, chosen_markers]/isolate(input$asinh_cofactor)))
+    tmp <- data.frame(input_fcs_data$sel_data[, chosen_markers])
     if (input$transform) {
       tmp <- data.frame(apply(tmp, 2, scale_vec))
     }
@@ -247,12 +248,22 @@ function(input, output, session) {
     })
   })
 
+  # Select which samples to plot on tSNE
   samples_select <- reactive({
     checkboxGroupInput("plotting_samples", "Samples to Plot", choices = unique(input_fcs_data$sel_data$Sample), selected = unique(input_fcs_data$sel_data$Sample))
   })
-
   output$samples_to_plot <- renderUI({samples_select()})
   outputOptions(output, "samples_to_plot", suspendWhenHidden = FALSE)
+
+  # Select which markers to plot on histograms
+  hists_select <- reactive({
+    if (is.null(input_fcs_data$markers)) return ()
+    checkboxGroupInput(inputId="hists_plot", "Color",
+                choices=c(input_fcs_data$markers[!input_fcs_data$markers%in%c("tSNEX", "tSNEY", "Density", "Cluster", "Sample")]),
+                selected=c(input_fcs_data$markers[!input_fcs_data$markers%in%c("tSNEX", "tSNEY", "Density", "Cluster", "Sample")]))
+  })
+  output$hists_to_plot <- renderUI({hists_select()})
+  outputOptions(output, "hists_to_plot", suspendWhenHidden = FALSE)
   # Populate the color selectors for samples
   output$color_selector <- renderUI({sample_colors()})
   outputOptions(output, "color_selector", suspendWhenHidden = FALSE)
@@ -312,9 +323,10 @@ function(input, output, session) {
     #data <- data[!data$Cluster%in%input$hist_groups,]
     #comp$Cluster <- paste0("Cluster: ", comp$Cluster)
 
-    plot_markers <- input_fcs_data$markers[!input_fcs_data$markers%in%c("tSNEX", "tSNEY", "Sample", "Cluster",
-                                                                        "Density", "Live_Dead", "SampleID",
-                                                                        "L_D", "AQUA AMINE", "OC")]
+    #plot_markers <- input_fcs_data$markers[!input_fcs_data$markers%in%c("tSNEX", "tSNEY", "Sample", "Cluster",
+    #                                                                    "Density", "Live_Dead", "SampleID",
+    #                                                                    "L_D", "AQUA AMINE", "OC")]
+    plot_markers <- input$hists_plot
     labs <- names(asinh_trans_prettybreaks(input$asinh_cofactor)$breaks())
     labs <- gsub("\\<1000\\>", bquote('10^3'), labs)
     labs <- gsub("\\<10000\\>", bquote('10^4'), labs)
@@ -324,8 +336,8 @@ function(input, output, session) {
     #names(mycolors) <- sort(unique(data$Cluster))
     plot_data_column <- function(column) {
       ggplot2::ggplot() +
-        ggplot2::geom_density(data = data, ggplot2::aes(x = data[, column], fill = "All Clusters", ..scaled..), alpha = 0.3) +
-        ggplot2::geom_density(data = comp, ggplot2::aes(x = comp[, column], color = comp[, "Cluster"], ..scaled..)) +
+        ggplot2::geom_density(data = data, ggplot2::aes(x = data[, column], fill = "All Clusters", ..scaled..), alpha = 0.3, size=input$hist_thick) +
+        ggplot2::geom_density(data = comp, ggplot2::aes(x = comp[, column], color = comp[, "Cluster"], ..scaled..), size=input$hist_thick) +
         ggplot2::scale_fill_manual(name = "", values = "grey") +
         ggplot2::scale_color_manual(name = "Cluster", values = input_fcs_data$mycolors) +
         ggplot2::labs(color="Cluster", x = column) +
@@ -334,7 +346,10 @@ function(input, output, session) {
         ggplot2::theme(panel.grid.major = ggplot2::element_blank(),
                        panel.grid.minor = ggplot2::element_blank()) +
         ggplot2::guides(fill = FALSE) +
-        ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size=3)))
+        ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size=4))) +
+        ggplot2::theme(legend.text = ggplot2::element_text(size=14, face="bold"),
+                       legend.title = ggplot2::element_text(size=16, face="bold"),
+                       axis.title = ggplot2::element_text(size=16, face="bold"))
 
     }
     myplots <- lapply(plot_markers, plot_data_column)
@@ -441,7 +456,7 @@ function(input, output, session) {
                                   show_cluster = input$show_cluster, font_size = input$tick_font, axis_width = input$axis_width,
                                   mycolors = input_fcs_data$mycolors)
           name <- paste0(tmpdir, "/", mark, "-bhSNE.", input$exportFormat)
-          ggplot2::ggsave(filename=name, plot=tmp_plot, device=input$exportFormat, height=8.5, width=11, units="in")
+          ggplot2::ggsave(filename=name, plot=tmp_plot, device=input$exportFormat, height=8.5, width=11, units="in", dpi=350)
           incProgress(1)
 
         }

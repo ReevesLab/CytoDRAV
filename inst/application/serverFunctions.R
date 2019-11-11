@@ -61,7 +61,10 @@ loadFCS <- function(fcsFiles, doTransform) {
 }
 
 ## PLOTTING FUNCTIONS
-create_plot <- function(dataToPlot, marker="Sample", dotsize, dotalpha, sampleColor="black", cofactor=150, show_legend,show_axis_labels, show_title, show_cluster, font_size, axis_width, mycolors=NULL) {
+create_plot <- function(dataToPlot, marker="Sample", dotsize,
+                        dotalpha, sampleColor="black", cofactor=150,
+                        show_legend,show_axis_labels, show_title, show_cluster,
+                        font_size, axis_width, mycolors=NULL) {
   data <- as.data.frame(dataToPlot)
   data <- data[sample(1:nrow(data)),]
   plot <- ggplot2::ggplot(data) + ggplot2::aes(x=data[,"tSNEX"], y=data[,"tSNEY"])
