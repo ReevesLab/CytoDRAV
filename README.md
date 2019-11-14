@@ -1,6 +1,8 @@
 # CytoDRAV
 Dimensionality Reduction and Visualization for Flow Cytometry
 
+For questions/inquries you can email me at kkroll1 (AT) bidmc (DOT) harvard (DOT) edu
+
 ## Web Demo
  * A demo version of this branch can be found [on my website](https://kroll.bio/CytoDRAV). 
 
