@@ -3,6 +3,9 @@ Dimensionality Reduction and Visualization for Flow Cytometry
 
 For questions/inquries you can email me at kkroll1 (AT) bidmc (DOT) harvard (DOT) edu
 
+# Note to interested
+I am currently in the process of doing some major overhauls to CytoDRAV. Some features to come are the ability to choose dimensionality reduction algorithm, pick automated clustering algorithm, and how data is uploaded into CytoDRAV. Please stay tuned in the next few weeks for these changes!
+
 ## Web Demo
  * A demo version of this branch can be found [on my website](https://kroll.bio/CytoDRAV). 
 
